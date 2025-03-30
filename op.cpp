@@ -1,5 +1,5 @@
 ﻿#include "op.h"
-static Package* memoryPool = NULL;
+
 // 定义货架层信息
 static ShelfLevel wareHouse[MAX_SHELVES][INIT_LEVELS];
 Package* packageHead = NULL; // 包裹链表头指针
@@ -106,7 +106,9 @@ void loadPackages()
     size_t maxNodes = fileSize / nodeSize;
     printf("File size: %ld bytes, Max nodes: %zu\n", fileSize, maxNodes);
 
-    memoryPool = (Package*)safeMalloc(maxNodes * nodeSize, "loadPackages_error");
+    // 分配内存池
+    static Package* memoryPool = NULL; // 静态变量保存内存池指针
+    memoryPool = (Package*)safeMalloc(maxNodes * nodeSize, "loadPackages");
     // 批量读取数据
     size_t readCount = fread(memoryPool, nodeSize, maxNodes, fp);
     fclose(fp);
@@ -171,24 +173,24 @@ void savePackages()
 /**
  * @brief 释放包裹链表
  */
-void freePackages() {
+void freePackages()
+{
+    static Package* memoryPool = NULL; // 静态变量保存内存池指针
 
     if (memoryPool) {
-        free(memoryPool);  // 只释放整块内存池
+        free(memoryPool);
         memoryPool = NULL;
-        packageHead = NULL; // 避免使用已经释放的指针
     }
     else {
         Package* current = packageHead;
         while (current) {
             Package* next = current->nextPackage;
-            free(current); // 仅释放单独 malloc 的包裹
+            free(current);
             current = next;
         }
-        packageHead = NULL;
     }
+    packageHead = NULL;
 }
-
 
 /* 贪心算法模块 */
 
