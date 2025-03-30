@@ -1,5 +1,5 @@
 ﻿#include "op.h"
-
+static Package* memoryPool = NULL;
 // 定义货架层信息
 static ShelfLevel wareHouse[MAX_SHELVES][INIT_LEVELS];
 Package* packageHead = NULL; // 包裹链表头指针
@@ -29,7 +29,7 @@ int validateVolume(double volume) {
 /**
  * @brief 校验包裹类型是否合法
  */
-int validatePackageType(int packageType) 
+int validatePackageType(int packageType)
 {
     if (packageType < 0 || packageType > 2) {
         fprintf(stderr, "[错误] 无效的包裹类型: %d\n", packageType);
@@ -45,11 +45,11 @@ int validatePackageType(int packageType)
  * @param head 包裹链表头指针
  * @return int 存在返回1，否则返回0
  */
-int isTrackingNumExist(const char* trackingNum, Package* head) 
+int isTrackingNumExist(const char* trackingNum, Package* head)
 {
     if (!trackingNum || !head) return 0;
     Package* current = head;
-    while (current) 
+    while (current)
     {
         if (strcmp(current->trackingNum, trackingNum) == 0) {
             return 1;
@@ -106,9 +106,7 @@ void loadPackages()
     size_t maxNodes = fileSize / nodeSize;
     printf("File size: %ld bytes, Max nodes: %zu\n", fileSize, maxNodes);
 
-    // 分配内存池
-    static Package* memoryPool = NULL; // 静态变量保存内存池指针
-    memoryPool = (Package*)safeMalloc(maxNodes * nodeSize, "loadPackages");
+    memoryPool = (Package*)safeMalloc(maxNodes * nodeSize, "loadPackages_error");
     // 批量读取数据
     size_t readCount = fread(memoryPool, nodeSize, maxNodes, fp);
     fclose(fp);
@@ -173,24 +171,24 @@ void savePackages()
 /**
  * @brief 释放包裹链表
  */
-void freePackages()
-{
-    static Package* memoryPool = NULL; // 静态变量保存内存池指针
+void freePackages() {
 
     if (memoryPool) {
-        free(memoryPool);
+        free(memoryPool);  // 只释放整块内存池
         memoryPool = NULL;
+        packageHead = NULL; // 避免使用已经释放的指针
     }
     else {
         Package* current = packageHead;
         while (current) {
             Package* next = current->nextPackage;
-            free(current);
+            free(current); // 仅释放单独 malloc 的包裹
             current = next;
         }
+        packageHead = NULL;
     }
-    packageHead = NULL;
 }
+
 
 /* 贪心算法模块 */
 
@@ -294,7 +292,7 @@ void generatePickupCode(int shelfId, int levelNum, Package* pkg) {
  * @brief 放置包裹并生成取件码
  */
 int placePackageOnShelf(Package* pkg) {
-    if (!pkg) 
+    if (!pkg)
     {
         printf("包裹未传入\n");
         return 0;
@@ -346,7 +344,7 @@ void pickUpFromHome() {
 /**
  * @brief 寄取件通知提醒功能
  */
-void sendNotification(int hoursThreshold) 
+void sendNotification(int hoursThreshold)
 {
     if (hoursThreshold <= 0) return;
     time_t currentTime = time(NULL);
