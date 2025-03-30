@@ -24,6 +24,7 @@
     <ProjectGuid>{827effaa-c585-4f0b-a5a5-0d59e6566b65}</ProjectGuid>
     <RootNamespace>PROJECTcourier</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>courierStationManager</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
