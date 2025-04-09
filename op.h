@@ -1,8 +1,10 @@
 #pragma once
+
 #include "common.h"
+#include "list.h"
 
 #define PACKAGE_FILE "packages.dat"
-
+#define SHELF_STATUS_FILE "shelfstatus.dat"
 #define MAX_SHELVES 10  
 #define INIT_LEVELS 5   
 
@@ -11,42 +13,27 @@
 #define BULKY_VOLUME 0.5  // 大件体积阈值
 #define HEAVY_WEIGHT 1.0  // 重包裹阈值
 
-// 校验重量是否合法
+extern List* packageList;
+
+/**************************** 工具函数 *******************************/
 int validateWeight(double weight);
-
-// 校验体积是否合法
 int validateVolume(double volume);
-
-// 校验包裹类型是否合法
 int validatePackageType(int packageType);
+int isTrackingNumExist(const char* trackingNum);
 
-// 安全内存分配
-void* safeMalloc(size_t size, const char* context);
-
-// 安全文件操作
-FILE* safeFopen(const char* path, const char* mode);
-
-// 初始化货架结构
+/**************************** 货架管理函数 *******************************/
 void initializeShelves();
-
-// 加载现有包裹数据并更新货架状态
+void saveShelves();
 void loadPackages();
-
-// 检查包裹ID是否已存在
-int isTrackingNumExist(const char* trackingNum, Package* head);
-
-// 释放包裹链表
+void savePackages();
 void freePackages();
 
-// 放置包裹
+/**************************** 包裹处理函数 *******************************/
+void findOptimalLayer(Package* pkg, int* bestShelf, int* bestLevel);
+void generatePickupCode(int shelfId, int levelNum, Package* pkg);
 int placePackageOnShelf(Package* pkg);
 
-// 记录包裹信息
-void savePackages();
-
-void sendNotification(int hoursThreshold);
-
-void pickUpFromHome();
-
+/**************************** 送件和取件功能 *******************************/
 void deliverToHome();
-
+void pickUpFromHome();
+void sendNotification(int hoursThreshold);

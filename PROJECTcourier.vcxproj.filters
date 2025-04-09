@@ -18,21 +18,33 @@
     <ClInclude Include="common.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="login.h">
+    <ClInclude Include="memorypool.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="op.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="login.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="list.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="login.cpp">
+    <ClCompile Include="main.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="memorypool.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="op.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp">
+    <ClCompile Include="login.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="list.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

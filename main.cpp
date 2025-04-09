@@ -1,12 +1,16 @@
 #include "common.h"
 #include "op.h"
+#include "list.h"
 #include "login.h"
-extern Package* packageHead;
-extern User* userHead;
-void testInputPackageInfo() 
+
+extern List* packageList; // 全局包裹链表指针
+extern List* userList; // 全局用户链表指针
+
+void testInputPackageInfo()
 {
-    Package* pkg = (Package*)malloc(sizeof(Package));
-    if (!pkg) {
+    Package* pkg = (Package*)safeMalloc(sizeof(Package),"input_temppkg");
+    if (!pkg)
+    {
         fprintf(stderr, "内存分配失败\n");
         return;
     }
@@ -15,8 +19,8 @@ void testInputPackageInfo()
     printf("请输入包裹信息:\n");
 
     printf("包裹快递单号：");
-    scanf_s("%14s", pkg->trackingNum, (unsigned)_countof(pkg->trackingNum));
-    if (isTrackingNumExist(pkg->trackingNum, packageHead))
+    scanf("%7s", pkg->trackingNum);
+    if (isTrackingNumExist(pkg->trackingNum))
     {
         fprintf(stderr, "快递单号已存在，请重新输入。\n");
         free(pkg);
@@ -33,44 +37,44 @@ void testInputPackageInfo()
     pkg->receiverAddress[sizeof(pkg->receiverAddress) - 1] = '\0';
 
     pkg->time.pending = time(NULL);
-    pkg->time.delivered = 0;
-    pkg->time.ordered = 0;
-    pkg->time.shipped = 0;
-    pkg->time.canceled = 0;
-    pkg->time.refused = 0;
+    pkg->time.delivered = time(NULL);
+    pkg->time.ordered = time(NULL);
+    pkg->time.shipped = time(NULL);
+    pkg->time.canceled = time(NULL);
+    pkg->time.refused = time(NULL);
 
     printf("包裹名称: ");
-    scanf_s("%19s", pkg->packageName, (unsigned)_countof(pkg->packageName));
+    scanf("%19s", pkg->packageName);
 
     // 清空输入缓冲区
     while (getchar() != '\n');
 
     printf("包裹类型 (0: 普通, 1: 贵重, 2: 大件): ");
-    scanf_s("%d", &(pkg->packageType));
+    scanf("%d", (int*)&(pkg->packageType));
 
     // 清空输入缓冲区
     while (getchar() != '\n');
 
     printf("包裹体积: ");
-    scanf_s("%lf", &(pkg->volume));
+    scanf("%f", &(pkg->volume));
 
     // 清空输入缓冲区
     while (getchar() != '\n');
 
     printf("包裹重量: ");
-    scanf_s("%lf", &(pkg->weight));
+    scanf("%f", &(pkg->weight));
 
     // 清空输入缓冲区
     while (getchar() != '\n');
 
     printf("寄件地址: ");
-    scanf_s("%199s", pkg->senderAddress, (unsigned)_countof(pkg->senderAddress));
+    scanf("%50s", pkg->senderAddress);
 
     // 清空输入缓冲区
     while (getchar() != '\n');
 
     printf("收件人手机号: ");
-    scanf_s("%11s", pkg->receiverPhone, (unsigned)_countof(pkg->receiverPhone));
+    scanf("%11s", pkg->receiverPhone);
 
     // 校验输入的包裹信息
     if (!validateWeight(pkg->weight) || !validateVolume(pkg->volume) || !validatePackageType(pkg->packageType))
@@ -85,11 +89,11 @@ void testInputPackageInfo()
     {
         printf("包裹已成功放置，取件码: %s\n", pkg->pickupCode);
 
-        pkg->nextPackage = packageHead;
-        packageHead = pkg;
+        list_add(packageList, pkg);
 
         // 保存包裹信息
         savePackages();
+        saveShelves();
     }
     else
     {
@@ -100,33 +104,54 @@ void testInputPackageInfo()
 
 void testLoadPackages()
 {
-    Package* packages = packageHead;
-    if (packages)
-    {
-        printf("包裹信息加载成功。\n");
-        Package* current = packages;
-        while (current)
-        {
-            char timeBuffer[64];
-            struct tm timeInfo;
-            localtime_s(&timeInfo, &current->time.pending);
-            strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeInfo);
 
-            printf("快递单号: %s, 名称: %s, 类型: %d, 体积: %.2f, 重量: %.2f, 取件码: %s, 寄件人手机号: %s, 寄件地址: %s, 收件人手机号: %s, 收件地址: %s, 运费: %.2f, 寄件方式: %d, 使用优惠券数量: %d, 包裹状态: %d, 取件地址: %s, 是否送件到楼: %d, 是否取件到楼: %d 入库时间：%s\r\n",
-                current->trackingNum, current->packageName, current->packageType,
-                current->volume, current->weight, current->pickupCode,
-                current->senderPhone, current->senderAddress, current->receiverPhone,
-                current->receiverAddress, current->shippingFee, current->shippingMethod,
-                current->usedCouponNum, current->packageState, current->pickupAddress,
-                current->isHomeDelivered, current->isHomeSent, timeBuffer);
-            current = current->nextPackage;
-        }
-    }
-    else
+    ListNode* current = packageList->head->next; // 跳过头节点
+    printf("包裹信息加载成功。\n");
+
+    while (current)
     {
-        fprintf(stderr, "包裹信息加载失败。\n");
+        if (current->data == NULL) {
+            fprintf(stderr, "发现空数据节点，跳过。\n");
+            current = current->next;
+            continue;
+        }
+
+        Package* pkg = (Package*)current->data;
+
+        // 避免访问空指针
+        const char* trackingNum = pkg->trackingNum ? pkg->trackingNum : "(空)";
+        const char* packageName = pkg->packageName ? pkg->packageName : "(空)";
+        const char* senderPhone = pkg->senderPhone ? pkg->senderPhone : "(空)";
+        const char* senderAddress = pkg->senderAddress ? pkg->senderAddress : "(空)";
+        const char* receiverPhone = pkg->receiverPhone ? pkg->receiverPhone : "(空)";
+        const char* receiverAddress = pkg->receiverAddress ? pkg->receiverAddress : "(空)";
+        const char* pickupAddress = pkg->pickupAddress ? pkg->pickupAddress : "(空)";
+
+        // 修正时间转换
+        char timeBuffer[64] = "(无时间)";
+        if (pkg->time.pending != 0) {
+            struct tm timeInfo;
+            time_t pendingTime = pkg->time.pending; // 确保是 time_t
+            if (localtime_s(&timeInfo, &pendingTime) == 0) {
+                strftime(timeBuffer, sizeof(timeBuffer), "%Y-%m-%d %H:%M:%S", &timeInfo);
+            }
+        }
+
+        printf("快递单号: %s, 名称: %s, 类型: %d, 体积: %.2f, 重量: %.2f, 取件码: %s, "
+            "寄件人手机号: %s, 寄件地址: %s, 收件人手机号: %s, 收件地址: %s, 运费: %.2f, "
+            "寄件方式: %d, 使用优惠券数量: %d, 包裹状态: %d, 取件地址: %s, "
+            "是否送件到楼: %d, 是否取件到楼: %d, 入库时间：%s\n",
+            trackingNum, packageName, pkg->packageType,
+            pkg->volume, pkg->weight, pkg->pickupCode,
+            senderPhone, senderAddress, receiverPhone,
+            receiverAddress, pkg->shippingFee, pkg->shippingMethod,
+            pkg->usedCouponNum, pkg->packageState, pickupAddress,
+            pkg->isHomeDelivered, pkg->isHomeSent, timeBuffer);
+
+        current = current->next;
     }
 }
+
 
 // 测试用户注册功能
 void testUserRegistration()
@@ -136,16 +161,16 @@ void testUserRegistration()
     printf("请输入用户信息:\n");
 
     printf("用户名: ");
-    scanf("%19s", userName);
+    scanf("%12s", userName);
 
     printf("手机号: ");
     scanf("%11s", phoneNumber);
 
     printf("密码: ");
-    scanf("%10s", password);
+    scanf("%6s", password);
 
     // 注册用户
-    if (userRegister(userName, phoneNumber, password))
+    if (userRegister(userName, phoneNumber, password,Regular))
     {
         printf("用户注册成功。\n");
     }
@@ -154,6 +179,7 @@ void testUserRegistration()
         fprintf(stderr, "用户注册失败。\n");
     }
 }
+
 // 测试用户登录功能
 void testUserLogin()
 {
@@ -166,161 +192,27 @@ void testUserLogin()
     scanf("%11s", phoneNumber);
 
     printf("密码: ");
-    scanf("%10s", password);
+    scanf("%6s", password);
 
     // 用户登录
     User* loggedInUser = userLogin(phoneNumber, password);
-    if (loggedInUser) {
+    if (loggedInUser)
+    {
         printf("用户登录成功。\n");
-        printf("你是：%s 级别： %d", loggedInUser->userName, loggedInUser->userType);
-        free(loggedInUser);
+        printf("你是：%s 级别： %d\n", loggedInUser->userName, loggedInUser->userType);
     }
-    else {
+    else
+    {
         fprintf(stderr, "用户登录失败。\n");
     }
-}
-void generateRandomPackage(Package* pkg, int index) {
-    snprintf(pkg->trackingNum, sizeof(pkg->trackingNum), "TN%05d", index);
-    snprintf(pkg->packageName, sizeof(pkg->packageName), "Package%05d", index);
-    pkg->packageType = static_cast<PackageType>(rand() % 3);
-    pkg->volume = (rand() % 1000) / 10.0;
-    pkg->weight = (rand() % 1000) / 10.0;
-    snprintf(pkg->senderPhone, sizeof(pkg->senderPhone), "138%08d", rand() % 100000000);
-    snprintf(pkg->senderAddress, sizeof(pkg->senderAddress), "Sender Address %05d", index);
-    snprintf(pkg->receiverPhone, sizeof(pkg->receiverPhone), "139%08d", rand() % 100000000);
-    snprintf(pkg->receiverAddress, sizeof(pkg->receiverAddress), "Receiver Address %05d", index);
-    pkg->shippingFee = (rand() % 1000) / 10.0;
-    pkg->shippingMethod = static_cast<ShippingMethod>(rand() % 3);
-    pkg->usedCouponNum = rand() % 10;
-    snprintf(pkg->pickupCode, sizeof(pkg->pickupCode), "PC%05d", index);
-    pkg->packageState = static_cast<PackageState>(rand() % 5);
-    snprintf(pkg->pickupAddress, sizeof(pkg->pickupAddress), "Pickup Address %05d", index);
-    pkg->isHomeDelivered = rand() % 2;
-    pkg->isHomeSent = rand() % 2;
-    pkg->time.pending = time(NULL) - (rand() % 100000);
-    pkg->time.delivered = time(NULL) - (rand() % 100000);
-    pkg->time.ordered = time(NULL) - (rand() % 100000);
-    pkg->time.shipped = time(NULL) - (rand() % 100000);
-    pkg->time.canceled = time(NULL) - (rand() % 100000);
-    pkg->time.refused = time(NULL) - (rand() % 100000);
-}
-
-void measurePerformance()
-{
-    const int numPackages = 1000000;
-    Package* head = NULL;
-    Package* tail = NULL;
-    const char* tempFileName = "temp_packages.dat";
-
-    // 生成十万个包裹并写入临时文件
-    clock_t start = clock();
-    FILE* fp = fopen(tempFileName, "wb");
-    if (!fp) {
-        fprintf(stderr, "无法打开文件进行写入\n");
-        return;
-    }
-    for (int i = 0; i < numPackages; i++)
-    {
-        Package pkg;
-        memset(&pkg, 0, sizeof(Package));
-        generateRandomPackage(&pkg, i);
-        fwrite(&pkg, sizeof(Package), 1, fp);
-    }
-    fclose(fp);
-    clock_t end = clock();
-    printf("生成并写入十万个包裹所需时间: %.2f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    // 从文件读取十万个包裹形成链表
-    start = clock();
-    fp = fopen(tempFileName, "rb");
-    if (!fp) {
-        fprintf(stderr, "无法打开文件进行读取\n");
-        return;
-    }
-    for (int i = 0; i < numPackages; i++)
-    {
-        Package* pkg = (Package*)malloc(sizeof(Package));
-        if (!pkg) {
-            fprintf(stderr, "内存分配失败\n");
-            fclose(fp);
-            return;
-        }
-        fread(pkg, sizeof(Package), 1, fp);
-        pkg->nextPackage = NULL;
-
-        if (!head)
-            head = tail = pkg;
-        else
-        {
-            tail->nextPackage = pkg;
-            tail = pkg;
-        }
-    }
-    fclose(fp);
-    end = clock();
-    printf("从文件读取并形成链表所需时间: %.2f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    // 遍历链表
-    start = clock();
-    Package* current = head;
-    while (current)
-    {
-        current = current->nextPackage;
-    }
-    end = clock();
-    printf("遍历十万个包裹所需时间: %.2f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    // 插入包裹
-    start = clock();
-    for (int i = 0; i < 1000; i++)
-    {
-        Package* pkg = (Package*)malloc(sizeof(Package));
-        if (!pkg) {
-            fprintf(stderr, "内存分配失败\n");
-            return;
-        }
-        memset(pkg, 0, sizeof(Package));
-        generateRandomPackage(pkg, numPackages + i);
-        pkg->nextPackage = head;
-        head = pkg;
-    }
-    end = clock();
-    printf("插入一千个包裹所需时间: %.2f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    // 删除包裹
-    start = clock();
-    for (int i = 0; i < 1000; i++)
-    {
-        if (head)
-        {
-            Package* temp = head;
-            head = head->nextPackage;
-            free(temp);
-        }
-    }
-    end = clock();
-    printf("删除一千个包裹所需时间: %.2f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    // 释放链表
-    start = clock();
-    while (head)
-    {
-        Package* temp = head;
-        head = head->nextPackage;
-        free(temp);
-    }
-    end = clock();
-    printf("释放链表所需时间: %.2f 秒\n", (double)(end - start) / CLOCKS_PER_SEC);
-
-    // 删除临时文件
-    remove(tempFileName);
 }
 
 // 测试主函数
 int main()
 {
-    initializeShelves();
     loadPackages();
+    initializeShelves();
+    loadUsers();
     int choice = 0;
     while (1)
     {
@@ -331,10 +223,8 @@ int main()
         printf("4. 读取包裹信息\n");
         printf("5. 寄取件通知提醒\n");
         printf("6. 性能评估\n");
-		printf("7. 释放包裹\n");
-		printf("8. 释放用户\n");
-		printf("9. 退出\n");
-        scanf_s("%d", &choice);
+        printf("9. 退出\n");
+        scanf("%d", &choice);
         switch (choice)
         {
         case 1:
@@ -345,6 +235,7 @@ int main()
             break;
         case 3:
             testInputPackageInfo();
+			
             break;
         case 4:
             testLoadPackages();
@@ -353,14 +244,12 @@ int main()
             sendNotification(1); // 传递自定义的小时数阈值
             break;
         case 6:
-            measurePerformance();
+            // 性能评估功能可以在这里实现
             break;
-        case 7:
-            freePackages();
-        case 8:
-            freeUsers();
         case 9:
-			return 0;
+            freePackages();
+            freeUsers();
+            return 0;
         default:
             break;
         }
