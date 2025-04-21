@@ -1,23 +1,35 @@
 #pragma once
-#define _CRT_SECURE_NO_WARNINGS
+#pragma warning(disable:4200)
+#pragma warning(disable:4244)
+#pragma warning(disable:4267)
+#pragma warning(disable:4996)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
-#include <graphics.h>
+#include <easyx.h>
 #include <math.h>
 #include <time.h>
 #include <stdbool.h> 
 
-#define PHONE           12  // æ‰‹æœºå·é•¿åº¦
-#define NAME            13  // åç§°é•¿åº¦
-#define PASSWORD        7  // å¯†ç é•¿åº¦
-#define ID_CODE         23  // èº«ä»½ç é•¿åº¦
-#define TRACKING_NUM    8  // å¿«é€’å•å·é•¿åº¦
-#define ADDRESS         51 // åœ°å€åé•¿åº¦
-#define DESCR           101 // æè¿°é•¿åº¦
+#define DIGITS          21 // Êı×Ö´®³¤¶È
+#define PHONE           12  // ÊÖ»úºÅ³¤¶È
+#define NAME            13  // Ãû³Æ³¤¶È
+#define PASSWORD        7  // ÃÜÂë³¤¶È
+#define ID_CODE         31  // Éí·İÂë³¤¶È
+#define TRACKING_NUM    11  // ¿ìµİµ¥ºÅ³¤¶È
+#define ADDRESS         51 // µØÖ·Ãû³¤¶È
+#define DESCR           101 // ÃèÊö³¤¶È
 
-/* ç”¨æˆ·ç±»å‹ */
+#define LOG_FILE        "logs.dat"
+#define PACKAGE_FILE    "packages.dat"
+#define SHELF_FILE      "shelfstatus.dat"
+#define TICKET_FILE     "tickets.dat"
+#define TIME_FILE       "time.dat"
+#define USER_FILE       "users.dat"
+
+/* ÓÃ»§ÀàĞÍ */
 typedef enum {
     Regular,
     VIP,
@@ -25,21 +37,21 @@ typedef enum {
     Admin
 } UserType;
 
-/* åŒ…è£¹ç±»å‹ */
+/* °ü¹üÀàĞÍ */
 typedef enum {
     PackageStandard,
     Parcel,
     Fragile
 } PackageType;
 
-/* å¯„ä»¶æ–¹å¼ */
+/* ¼Ä¼ş·½Ê½ */
 typedef enum {
     ShippingStandard,
     Express,
     Economic
 } ShippingMethod;
 
-/* åŒ…è£¹çŠ¶æ€ */
+/* °ü¹ü×´Ì¬ */
 typedef enum {
     Ordered,
     Shipped,
@@ -51,22 +63,20 @@ typedef enum {
     DamagedLost
 } PackageState;
 
-/* å·¥å•ç±»å‹ */
+/* ¹¤µ¥ÀàĞÍ */
 typedef enum {
     Miscollection,
     DamageLoss,
-    ComplaintSuggestion,
-    ComplaintSuggestionAddressed
 } TicketType;
 
-/* è´§æ¶å±‚ä¿¡æ¯ */
+/* »õ¼Ü²ãĞÅÏ¢ */
 typedef struct {
     float volumeCapacity;
     float occupiedVolume;
     int packageNum;
 } ShelfLevel;
 
-/* æ—¶é—´ä¿¡æ¯ */
+/* Ê±¼äĞÅÏ¢ */
 typedef struct {
     time_t ordered;
     time_t shipped;
@@ -76,20 +86,19 @@ typedef struct {
     time_t refused;
 } PackageTime;
 
-/* ç”¨æˆ·ä¿¡æ¯ */
+/* ÓÃ»§ĞÅÏ¢ */
 typedef struct User {
     unsigned int experience;
     unsigned short couponCount;
     unsigned short discount;
     UserType userType;
-    struct User* nextUser;
     char userName[NAME];
     char phoneNumber[PHONE];
     char identityCode[ID_CODE];
     char password[PASSWORD];
 } User;
 
-/* åŒ…è£¹ä¿¡æ¯ */
+/* °ü¹üĞÅÏ¢ */
 typedef struct Package {
     float volume;
     float weight;
@@ -100,7 +109,6 @@ typedef struct Package {
     unsigned short usedCouponNum;
     bool isHomeDelivered;
     bool isHomeSent;
-    struct Package* nextPackage;
     PackageTime time;
     char trackingNum[TRACKING_NUM];
     char packageName[NAME];
@@ -109,29 +117,28 @@ typedef struct Package {
     char receiverPhone[PHONE];
     char receiverAddress[ADDRESS];
     char pickupCode[ID_CODE];
-    char pickupAddress[ADDRESS];
+    char dormAddress[ADDRESS]; //ËŞÉá¾ßÌåÎ»ÖÃ
 } Package;
 
-/* å·¥å•ä¿¡æ¯ */
+/* ¹¤µ¥ĞÅÏ¢ */
 typedef struct Ticket {
     time_t createdTime;
-    unsigned short ticketId;
+    int ticketId;
     TicketType ticketType;
-    struct Ticket* nextTicket;
     char description[DESCR];
-    char phoneNumber[PHONE];
-    char trackingNum[TRACKING_NUM];
-    bool isHandled;
+	char phoneNumber[PHONE];
+	char pkgTrackingNum[TRACKING_NUM];
+	bool isHandled;
 } Ticket;
 
-/* æ—¥å¿—ä¿¡æ¯ */
+/* ÈÕÖ¾ĞÅÏ¢ */
 typedef struct Log {
     time_t createdTime;
     struct Log* nextLog;
     char description[DESCR];
 } Log;
 
-/* ç»Ÿè®¡æ•°æ® */
+/* Í³¼ÆÊı¾İ */
 typedef struct {
     double weeklyRevenue;
     int sendCount;

@@ -2,9 +2,7 @@
 
 #include "common.h"
 #include "list.h"
-
-#define USER_FILE "users.dat"
-
+#include "user.h"
 
 /**************************** ¹¤¾ßº¯Êý *******************************/
 int validatePassword(const char* password, int flag);
@@ -18,5 +16,5 @@ void loadUsers();
 void saveUsers();
 void freeUsers();
 int isPhoneNumberExist(const char* phoneNumber);
-int userRegister(const char* name, const char* phoneNumber, const char* password, UserType userType);
+int userRegister(const char* name, const char* phoneNumber, const char* password);
 User* userLogin(const char* phoneNumber, const char* password);

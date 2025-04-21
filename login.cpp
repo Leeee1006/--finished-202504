@@ -115,7 +115,6 @@ void freeUsers()
 }
 
 // 检查手机号是否已经注册过
-// 检查手机号是否已注册
 int isPhoneNumberExist(const char* phoneNumber)
 {
     ListNode* current = userList->head->next;
@@ -135,7 +134,7 @@ int isPhoneNumberExist(const char* phoneNumber)
 // 注册用户
 // 返回值: 
 // 参数：
-int userRegister(const char* name, const char* phoneNumber, const char* password, UserType userType=Regular)
+int userRegister(const char* name, const char* phoneNumber, const char* password)
 {
     if (isPhoneNumberExist(phoneNumber))
     {
@@ -154,17 +153,15 @@ int userRegister(const char* name, const char* phoneNumber, const char* password
     newUser->phoneNumber[sizeof(newUser->phoneNumber) - 1] = '\0';
     strncpy(newUser->password, password, sizeof(newUser->password) - 1);
     newUser->password[sizeof(newUser->password) - 1] = '\0';
-    newUser->discount = 0;
-    newUser->userType = userType;
+    newUser->discount = 100;
+    newUser->userType = Regular;
     newUser->couponCount = 0;
-    newUser->experience = 0;
-
+    newUser->experience = 10;
+    strncpy(newUser->identityCode,generateIdentityCode(phoneNumber), ID_CODE);
     list_add(userList, newUser);
     saveUsers();
     return 1;
 }
-
-
 // 用户登录函数
 // 返回值: 登录成功返回目标用户结构体指针，失败返回NULL
 // 参数：phoneNumber - 手机号 password - 密码

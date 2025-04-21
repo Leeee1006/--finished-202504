@@ -10,7 +10,7 @@ typedef struct MemoryBlock
     unsigned int freeNum;      // 当前内存块中的空闲对象数量
     unsigned int firstFree;    // 第一个空闲对象的索引
     unsigned int num;          // 内存块中的对象总数
-    char mData[1];             // 内存块数据起始位置
+    char mData[];             // 内存块数据起始位置
 } MemoryBlock;
 
 // 内存池结构体

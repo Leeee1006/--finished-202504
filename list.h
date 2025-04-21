@@ -2,7 +2,7 @@
 #include "common.h"
 #include "memorypool.h"
 
-// 可容纳各种数据类型的通用单向、有哨兵链表结构体
+// 通用链表结构体
 typedef struct List
 {
 	struct ListNode* head;
@@ -21,32 +21,70 @@ typedef struct ListNode
 	struct ListNode* next;
 }ListNode;
 
-// 功能：初始化链表 (含文件预读取)；
-// 参数1：元素大小；
-// 参数2：文件名；
-// 参数3：文件名字节数
-// 返回：新链表指针；
+// @brief 读取文件, 创建链表
+// @param initSize 内存池初始大小
+// @param growSize 内存池增长大小
+// @param dataSize 数据大小
+// @param fileName 文件名
+// @return 新链表指针
 List* list_init(unsigned int initSize, unsigned int growSize, unsigned int dataSize, const char* fileName, unsigned int fileNameSize);
 
-// 功能：保存链表 (文件写入)；
-// 参数：链表指针；
+// @brief 写入文件, 保存链表
+// @param 链表指针
 void list_save(List* list);
 
-// 属性：私有，不建议使用；
-// 功能：添加结点子函数 (尾插)；
-// 参数1：链表指针；
-// 参数2：数据指针 (持久)；
+// @brief 基础函数
+// @brief 添加结点 (头插)
+// @param list 链表指针
+// @param data 数据指针 (持久生存期)
 void list_basicAdd(List* list, void* data);
 
-// 功能：添加结点 (尾插)；
-// 参数1：链表指针；
-// 参数2：数据指针 (任意生存期)；
+// @brief 添加结点 (头插)
+// @param list 链表指针
+// @param data 数据指针 (任意生存期)
 void list_add(List* list, void* data);
 
-// 功能：清空链表；
-// 参数：链表指针；
+// @brief 删除结点
+// @param list 链表指针
+// @param cmp 比较函数
+// @param mode 匹配模式
+void list_delete(List* list, const void* ref, unsigned long long mode, bool cmp(const void* d1, const void* d2, int mode));
+
+// @brief 删除结点 (一般条件)
+// @param list 链表指针
+// @param cmp 条件函数
+void list_delete_ex(List* list, bool condition(const void* d));
+
+// @brief 查找结点
+// @param list 链表指针
+// @param condition 比较函数
+// @param mode 匹配模式
+// @return 目标结点数据
+void* list_find(List* list, const void* ref, unsigned long long mode, bool cmp(const void* d1, const void* d2, int mode));
+
+// @brief 查找结点 (一般条件)
+// @param list 链表指针
+// @param condition 条件函数
+// @return 目标结点数据
+void* list_find_ex(List* list, bool condition(const void* d));
+
+// @brief 清空链表
+// @param list 链表指针
 void list_clear(List* list);
 
-// 功能：释放链表 (释放后链表不可用)；
-// 参数：链表指针；
+// @brief 释放链表
+// @param list 链表指针
 void list_free(List* list);
+
+// @brief 基础函数
+// @brief 链表排序
+// @param head 链表指针
+// @param elementCount 结点数量
+// @param cmp 比较函数
+// @param 排序后的链表指针
+ListNode* list_mergeSort(ListNode* head, ListNode* tail, size_t elementCount, bool cmp(const void* d1, const void* d2));
+
+// @brief 链表排序
+// @param 链表指针
+// @param 比较函数指针
+void list_sort(List* list, bool cmp(const void* d1, const void* d2));
