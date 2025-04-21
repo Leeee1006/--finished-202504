@@ -29,6 +29,7 @@ void loadPackages();
 void savePackages();
 void freePackages();
 void showWarehouse(int currentshelf);
+void updateShelfAfterPickup(Package* pkg);
 
 // 包裹处理函数
 int placePackageOnShelf(Package* pkg);

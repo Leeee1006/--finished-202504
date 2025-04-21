@@ -229,6 +229,13 @@ void AddressMisdelivery(long long ticketId)
 	{
 		foundPackage->packageState = Misdelivered;
 		list_delete(g_tickets, &refTicket, TICKETID_MODE, cmpTicket);//处理成功，删除该节点
+		Log tempLog = {};
+		sprintf_s(tempLog.description, DESCR, "管理员处理了工单%.20lld", foundTicket->ticketId);
+		tempLog.createdTime = time(NULL);
+
+		// 保存日志
+		list_add(getLogs(), &tempLog);
+		list_save(getLogs());
 		messbox("该误取工单处理成功");
 	}
 }
@@ -252,6 +259,13 @@ void AddressDamageLoss(long long ticketId)
 	{
 		foundPackage->packageState = DamagedLost;
 		list_delete(g_tickets, &refTicket, TICKETID_MODE, cmpTicket);//处理成功，删除该节点
+		Log tempLog = {};
+		sprintf_s(tempLog.description, DESCR, "管理员处理了工单%.20lld", foundTicket->ticketId);
+		tempLog.createdTime = time(NULL);
+
+		// 保存日志
+		list_add(getLogs(), &tempLog);
+		list_save(getLogs());
 		messbox("该损坏丢失工单处理成功");
 	}
 }

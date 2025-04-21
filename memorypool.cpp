@@ -49,7 +49,7 @@ void* memoryAlloc(MemoryPool* mp)
         return NULL;
     }
 
-    // 查找第一个有空闲空间的内存块
+    // 查找第一个有空闲空间的内存块 短路！
     MemoryBlock* currentBlock = mp->firstBlock;
     while (currentBlock && currentBlock->freeNum == 0) {
         currentBlock = currentBlock->next;
@@ -71,7 +71,7 @@ void* memoryAlloc(MemoryPool* mp)
         currentBlock->next = mp->firstBlock;
         mp->firstBlock = currentBlock;
 
-        // 初始化空闲“链表”，这能叫链表吗？ 其实是一个数组
+        // 初始化空闲“链表”，这能叫链表吗？ 其实是一个数组 （索引法）
         char* data = currentBlock->mData;
         for (unsigned int i = 1; i < blockSize; ++i) {
             *(uintptr_t*)data = i; // 将索引存储到空闲对象中
@@ -125,13 +125,13 @@ void memoryFree(MemoryPool* mp, void* pfree)
                 return; // 如果指针不对齐，直接返回  
             }
 
-            // 根据偏移量计算对象的索引  
+            // 根据偏移量计算被释放对象的索引
             unsigned int objIndex = (unsigned int)(offset / mp->objSize);
 
             // 将对象重新加入空闲链表  
-            *(unsigned int*)freePtr = currentBlock->firstFree; // 将当前空闲链表头的索引存入对象  
+            *(uintptr_t*)freePtr = (uintptr_t)(currentBlock->firstFree);  // 将当前空闲链表头的索引存储到被释放对象中
             currentBlock->firstFree = objIndex; // 更新空闲链表头为当前对象的索引  
-            currentBlock->freeNum++; // 增加空闲对象的数量  
+            currentBlock->freeNum++;
 
             return;
         }

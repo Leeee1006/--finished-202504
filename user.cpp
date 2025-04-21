@@ -243,6 +243,8 @@ void pickupPackage(char* trackingNum)
 	foundPackage->packageState = Delivered;
 	//记录签收时间
 	foundPackage->time.delivered = getStationTime();
+	//更新货架状态
+	updateShelfAfterPickup(foundPackage);
 	//保存包裹
 	list_save(getPackages());
 	//添加日志
