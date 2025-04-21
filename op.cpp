@@ -1,7 +1,8 @@
 ﻿#include "op.h"
 #include "list.h"
 
-// 定义货架层信息
+std::unordered_set<std::string> pickupCodeSet;
+
 List* packageList = NULL; // 全局包裹链表指针
 
 /**************************** 工具函数 *******************************/
@@ -174,6 +175,18 @@ void loadPackages()
 		fprintf(stderr, "[错误] 初始化包裹链表失败\n");
 		return;
 	}
+
+	// 遍历链表，将所有未取包裹的取件码加载到哈希表中
+	ListNode* current = packageList->head->next;
+	while (current)
+	{
+		Package* pkg = (Package*)current->data;
+		if (pkg && pkg->packageState==Pending && strlen(pkg->pickupCode) > 0)
+		{
+			pickupCodeSet.insert(pkg->pickupCode);
+		}
+		current = current->next;
+	}
 }
 
 /**
@@ -332,8 +345,6 @@ static void findOptimalLayer(Package* pkg, int* bestShelf, int* bestLevel) {
  * @brief 生成包裹取件码
  */
 static void generatePickupCode(int shelfId, int levelNum, Package* pkg) {
-	if (!pkg) return;
-
 	if (shelfId < 0 || shelfId >= MAX_SHELVES || levelNum < 0 || levelNum >= INIT_LEVELS) {
 		snprintf(pkg->pickupCode, sizeof(pkg->pickupCode), "ERR");
 		fprintf(stderr, "[错误] 请检查generatePickupCode函数传入参数合法性！\n");
@@ -347,8 +358,26 @@ static void generatePickupCode(int shelfId, int levelNum, Package* pkg) {
 		return;
 	}
 
-	snprintf(pkg->pickupCode, sizeof(pkg->pickupCode), "%d-%d-%03d", shelfId + 1, levelNum + 1, sl->packageNum);
+	int packageNum = 0; // 从 0 开始尝试编号
+	bool isUnique = false;
+	while (!isUnique) {
+		snprintf(pkg->pickupCode, sizeof(pkg->pickupCode), "%d-%d-%03d", shelfId + 1, levelNum + 1, packageNum);
+		std::string code(pkg->pickupCode);
+		//fprintf(stderr, "[调试] 当前尝试的取件码: %s\n",code);
+		if (pickupCodeSet.find(code) == pickupCodeSet.end()) {
+			isUnique = true;
+			pickupCodeSet.insert(code); // 插入哈希表
+		}
+		else {
+			packageNum++; // 尝试下一个编号
+		}
+	}
+
+	// 更新货架层的包裹编号计数
+	sl->packageNum = packageNum + 1;
 }
+
+
 
 /**
  * @brief 放置包裹并生成取件码
@@ -513,6 +542,7 @@ void deliverToHomeMakeTrue(char* trackingNum) {
 		Package* pkg = (Package*)current->data;
 		if (strcmp(pkg->trackingNum, trackingNum) == 0 && pkg->isHomeDelivered && pkg->packageState == Pending) {
 			pkg->packageState = Delivered;
+			pkg->time.delivered = getStationTime(); // 更新取件时间
 			messbox("确认已送达成功");
 			//添加日志
 			Log tempLog = {};
@@ -660,7 +690,7 @@ long long countPackagesForPointDelivery(long long totalPackages) {
 	while (current) {
 		Package* pkg = (Package*)current->data;
 		// 筛选条件：状态为 Ordered 且已经取回到寄件点
-		if (pkg->packageState == Ordered && pkg->isHomeSent==false) {
+		if (pkg->packageState == Ordered && pkg->isHomeSent == false) {
 			totalPackages++;
 		}
 		current = current->next;
@@ -714,6 +744,8 @@ void confirmPointDelivery(char* trackingNum) {
 				return;
 			}
 			pkg->packageState = Shipped; // 更新状态为已寄出
+			pkg->time.shipped = getStationTime(); // 更新寄件时间
+
 			messbox("确认已寄出成功");
 			// 添加日志
 			Log tempLog = {};
@@ -735,41 +767,44 @@ void confirmPointDelivery(char* trackingNum) {
 * @brief 更新货架状态以反映包裹被取出的情况
 * @param pkg 被取出的包裹
 */
+void updateShelfAfterPickup(Package* pkg) {
+	if (!pkg || strlen(pkg->pickupCode) == 0) {
+		fprintf(stderr, "[错误] 包裹指针为空或取件码无效\n");
+		return;
+	}
 
-void updateShelfAfterPickup(Package* pkg) {  
-   if (!pkg || strlen(pkg->pickupCode) == 0) {  
-       fprintf(stderr, "[错误] 包裹指针为空或取件码无效\n");  
-       return;  
-   }  
+	int shelfId = -1, levelNum = -1;
+	if (sscanf(pkg->pickupCode, "%d-%d", &shelfId, &levelNum) != 2) {
+		fprintf(stderr, "[错误] 无法解析取件码: %s\n", pkg->pickupCode);
+		return;
+	}
 
-   int shelfId = -1, levelNum = -1;  
-   if (sscanf(pkg->pickupCode, "%d-%d", &shelfId, &levelNum) != 2) {  
-       fprintf(stderr, "[错误] 无法解析取件码: %s\n", pkg->pickupCode);  
-       return;  
-   }  
+	// 转换为数组索引  
+	shelfId -= 1;
+	levelNum -= 1;
 
-   // 转换为数组索引  
-   shelfId -= 1;  
-   levelNum -= 1;  
+	if (shelfId < 0 || shelfId >= MAX_SHELVES || levelNum < 0 || levelNum >= INIT_LEVELS) {
+		fprintf(stderr, "[错误] 货架编号或层编号非法 (shelf=%d, level=%d)\n", shelfId, levelNum);
+		return;
+	}
 
-   if (shelfId < 0 || shelfId >= MAX_SHELVES || levelNum < 0 || levelNum >= INIT_LEVELS) {  
-       fprintf(stderr, "[错误] 货架编号或层编号非法 (shelf=%d, level=%d)\n", shelfId, levelNum);  
-       return;  
-   }  
+	ShelfLevel* sl = &wareHouse[shelfId][levelNum];
+	if (!sl) {
+		fprintf(stderr, "[错误] 无法访问货架层\n");
+		return;
+	}
 
-   ShelfLevel* sl = &wareHouse[shelfId][levelNum];  
-   if (!sl) {  
-       fprintf(stderr, "[错误] 无法访问货架层\n");  
-       return;  
-   }  
+	// 更新货架层状态  
+	sl->occupiedVolume -= pkg->volume;
+	sl->packageNum -= 1;
 
-   // 更新货架层状态  
-   sl->occupiedVolume -= pkg->volume;  
-   sl->packageNum -= 1;  
+	// 从哈希表中移除取件码
+	pickupCodeSet.erase(pkg->pickupCode);
 
-   // 保存货架状态  
-   saveShelves();  
+	// 保存货架状态  
+	saveShelves();
 
-   printf("[信息] 货架 %d-%d 状态已更新: 剩余容量 %.2f, 包裹数 %d\n",  
-       shelfId + 1, levelNum + 1, sl->volumeCapacity - sl->occupiedVolume, sl->packageNum);  
+	printf("[信息] 货架 %d-%d 状态已更新: 剩余容量 %.2f, 包裹数 %d\n",
+		shelfId + 1, levelNum + 1, sl->volumeCapacity - sl->occupiedVolume, sl->packageNum);
 }
+
