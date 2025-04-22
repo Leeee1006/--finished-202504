@@ -13,7 +13,7 @@
 #include <time.h>
 #include <stdbool.h> 
 
-#define DIGITS          21 // 数字串长度
+#define DIGITS          51 // 数字串长度
 #define PHONE           12  // 手机号长度
 #define NAME            13  // 名称长度
 #define PASSWORD        7  // 密码长度
@@ -134,7 +134,6 @@ typedef struct Ticket {
 /* 日志信息 */
 typedef struct Log {
     time_t createdTime;
-    struct Log* nextLog;
     char description[DESCR];
 } Log;
 

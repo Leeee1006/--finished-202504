@@ -29,6 +29,7 @@ bool isLogExpired(const void*data)
 void deleteExpiredLogs() 
 {
 	list_delete_ex(getLogs(), isLogExpired);
+	list_save(getLogs());
 }
 
 
@@ -44,7 +45,7 @@ void showAllLogsWindow(int currentpage, long long allLogsTotalNumber,char* searc
 	}
 	time_t currentTime = getStationTime();
 	time_t weekAgoTime = currentTime-7*24*60*60;
-	text(100, 50, "日志描述"); text(600, 50, "创建时间");
+	text(50, 50, "日志描述"); text(800, 50, "创建时间");
 	long long flag = 0;
 	for (ListNode* node = g_logs->head->next; node != NULL; node = node->next)
 	{
@@ -54,8 +55,8 @@ void showAllLogsWindow(int currentpage, long long allLogsTotalNumber,char* searc
 			flag++;
 			if (flag >= start && flag <= end) 
 			{
-				text(100, 50 + (flag - start + 1) * 50, log->description);
-				text(600, 50 + (flag - start + 1) * 50, formatTime(log->createdTime));
+				text(50, 50 + (flag - start + 1) * 50, log->description);
+				text(800, 50 + (flag - start + 1) * 50, formatTime(log->createdTime));
 			}
 		}
 		else {

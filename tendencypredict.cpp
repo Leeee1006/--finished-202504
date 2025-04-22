@@ -396,15 +396,24 @@ void futuredata(int year, int month, int day)
 	//@比较部分@
 	double temp = 0.0;
 	temp = min(min(r1, r2), r3);
+	buildWindow();
+	label(200, 100, "未来第一天：");
+	label(200, 150, "未来第二天：");
+	label(200, 200, "未来第三天：");
+	label(200, 250, "未来第四天：");
+	label(200, 300, "未来第五天：");
+	label(200, 350, "未来第六天：");
+	label(200, 400, "未来第七天：");
 	//根据得到的最小残差和匹配对应的操作
 	if (temp == r1) // 一次函数操作
 	{
 		printf("回归方程(入库 y) = %+.2lf %+.2lf * x\n", a1, b1);
-		buildWindow();
+		
 		double sumNextWeek = 0.0;
 		for (int day = 1; day <= 7; day++)
 		{
 			double predValue = a1 + b1 * (DAYS + day);
+			if (predValue < 0)predValue = 0;
 			sumNextWeek += predValue;
 			label(400, 50 + 50 * day, predValue);
 		}
@@ -414,11 +423,12 @@ void futuredata(int year, int month, int day)
 	if (temp == r2) // 指数函数操作
 	{
 		printf("回归方程(入库 y) = %+.2lf * e^(%+.2lf * x)\n", a2, b2);
-		buildWindow();
+		
 		double sumNextWeek = 0.0;
 		for (int day = 1; day <= 7; day++)
 		{
 			double predValue = a2 * (exp(b2 * (DAYS + day)));
+			if (predValue < 0)predValue = 0;
 			sumNextWeek += predValue;
 			label(400, 50 + 50 * day, predValue);
 		}
@@ -428,12 +438,14 @@ void futuredata(int year, int month, int day)
 	if (temp == r3) // 对数函数操作
 	{
 		printf("回归方程(入库 y) = %+.2lf * lnx %+.2lf\n", b3, a3);
-		buildWindow();
+		
 		double sumNextWeek = 0.0;
 		for (int day = 1; day <= 7; day++)
 		{
 			double predValue = a3 + b3 * log(DAYS + day);
+			if (predValue < 0)predValue = 0;
 			sumNextWeek += predValue;
+
 			label(400, 50 + 50 * day, predValue);
 		}
 		label(50, 450, "下一周入库总量预测");
@@ -562,13 +574,13 @@ void WeeklyBriefly()
 			}
 		}
 	}
-	label(50, 50, "已下单包裹数："); label(400, 50, packagestatecount[0]);
-	label(50, 100, "已寄出包裹数："); label(400, 100, packagestatecount[1]);
-	label(50, 150, "待收件包裹数："); label(400, 150, packagestatecount[2]);
-	label(50, 200, "已收件包裹数："); label(400, 200, packagestatecount[3]);
-	label(50, 250, "被拒收包裹数："); label(400, 250, packagestatecount[4]);
-	label(50, 300, "被取消包裹数："); label(400, 300, packagestatecount[5]);
-	label(50, 350, "被误取包裹数："); label(400, 350, packagestatecount[6]);
-	label(50, 400, "损坏丢失包裹数："); label(400, 400, packagestatecount[7]);
-	label(50, 450, "驿站盈利总和："); label(400, 450, allmoney);
+	label(50, 50, "已下单包裹数："); label(400, 50,(int) packagestatecount[0]);
+	label(50, 100, "已寄出包裹数："); label(400, 100,(int) packagestatecount[1]);
+	label(50, 150, "待收件包裹数："); label(400, 150, (int)packagestatecount[2]);
+	label(50, 200, "已收件包裹数："); label(400, 200, (int)packagestatecount[3]);
+	label(50, 250, "被拒收包裹数："); label(400, 250, (int)packagestatecount[4]);
+	label(50, 300, "被取消包裹数："); label(400, 300, (int)packagestatecount[5]);
+	label(50, 350, "被误取包裹数："); label(400, 350, (int)packagestatecount[6]);
+	label(50, 400, "损坏丢失包裹数："); label(400, 400, (int)packagestatecount[7]);
+	label(50, 450, "驿站盈利总和："); label(400, 450,(double) allmoney);
 }

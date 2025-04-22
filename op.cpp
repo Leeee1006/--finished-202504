@@ -3,14 +3,16 @@
 
 std::unordered_set<std::string> pickupCodeSet;
 
+// 定义货架层信息
 List* packageList = NULL; // 全局包裹链表指针
 
 /**************************** 工具函数 *******************************/
 int validateWeight(double weight)
 {
+	// 检查重量是否在有效范围内
 	if (weight <= 0 || weight > 100)
 	{
-		fprintf(stderr, "[错误] 无效的重量: %.2f\n", weight);
+		messbox("[错误] 无效的重量");
 		return 0;
 	}
 	return 1;
@@ -18,14 +20,14 @@ int validateWeight(double weight)
 
 int validateVolume(double volume)
 {
+	// 检查体积是否在有效范围内
 	if (volume <= 0 || volume > 4)
 	{
-		fprintf(stderr, "[错误] 无效的体积: %.2f\n", volume);
+		messbox("[错误] 无效的体积");
 		return 0;
 	}
 	return 1;
 }
-
 int validatePackageType(int packageType)
 {
 	if (packageType < 0 || packageType > 2)
@@ -181,7 +183,7 @@ void loadPackages()
 	while (current)
 	{
 		Package* pkg = (Package*)current->data;
-		if (pkg && pkg->packageState==Pending && strlen(pkg->pickupCode) > 0)
+		if (pkg && pkg->packageState == Pending && strlen(pkg->pickupCode) > 0)
 		{
 			pickupCodeSet.insert(pkg->pickupCode);
 		}
@@ -358,10 +360,10 @@ static void generatePickupCode(int shelfId, int levelNum, Package* pkg) {
 		return;
 	}
 
-	int packageNum = 0; // 从 0 开始尝试编号
+	int index = 0; // 从 0 开始尝试编号
 	bool isUnique = false;
 	while (!isUnique) {
-		snprintf(pkg->pickupCode, sizeof(pkg->pickupCode), "%d-%d-%03d", shelfId + 1, levelNum + 1, packageNum);
+		snprintf(pkg->pickupCode, sizeof(pkg->pickupCode), "%d-%d-%03d", shelfId + 1, levelNum + 1, index);
 		std::string code(pkg->pickupCode);
 		//fprintf(stderr, "[调试] 当前尝试的取件码: %s\n",code);
 		if (pickupCodeSet.find(code) == pickupCodeSet.end()) {
@@ -369,12 +371,10 @@ static void generatePickupCode(int shelfId, int levelNum, Package* pkg) {
 			pickupCodeSet.insert(code); // 插入哈希表
 		}
 		else {
-			packageNum++; // 尝试下一个编号
+			index++; // 尝试下一个编号
 		}
 	}
 
-	// 更新货架层的包裹编号计数
-	sl->packageNum = packageNum + 1;
 }
 
 
@@ -431,17 +431,11 @@ char* InputPackageInfo(char* trackingNum, char* packageName, PackageType m, doub
 	strncpy(pkg->trackingNum, trackingNum, sizeof(pkg->trackingNum) - 1);
 	pkg->trackingNum[sizeof(pkg->trackingNum) - 1] = '\0';
 
-	if (isTrackingNumExist(pkg->trackingNum)) {
-		messbox("快递单号已存在，请重新输入。");
-		free(pkg);
-		return NULL;
-	}
-
 	pkg->packageState = Pending;
 	pkg->isHomeDelivered = false;
 	pkg->isHomeSent = false;
 
-	strncpy(pkg->receiverAddress, "默认是吉林大学本驿站", sizeof(pkg->receiverAddress) - 1);
+	strncpy(pkg->receiverAddress, "吉林大学大学城", sizeof(pkg->receiverAddress) - 1);
 	pkg->receiverAddress[sizeof(pkg->receiverAddress) - 1] = '\0';
 
 	// 初始化时间信息
@@ -481,7 +475,6 @@ char* InputPackageInfo(char* trackingNum, char* packageName, PackageType m, doub
 		return pkg->pickupCode;
 	}
 	else {
-		messbox("包裹放置失败，请重新输入。");
 		free(pkg);
 		return NULL;
 	}
@@ -516,14 +509,14 @@ void  deliverToHomeWindow(int page, long long deliverToHomeTotalNumber, char* se
 		end = deliverToHomeTotalNumber;  // 最后一页的结束位置
 	}
 	ListNode* current = packageList->head->next;
-	text(150, 50, "快递单号"); text(250, 50, "取件码"); text(400, 50, "收件人电话"); text(650, 50, "送达地址");
+	text(50, 50, "快递单号"); text(250, 50, "取件码"); text(400, 50, "收件人电话"); text(650, 50, "送达地址");
 	long long flag = 0;
 	while (current) {
 		Package* pkg = (Package*)current->data;
 		if (pkg->isHomeDelivered && pkg->packageState == Pending) {
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(150, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
 				text(250, 50 + (flag - start + 1) * 50, pkg->pickupCode);//取件码
 				text(400, 50 + (flag - start + 1) * 50, pkg->receiverPhone);
 				text(650, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//送件地址
@@ -542,7 +535,8 @@ void deliverToHomeMakeTrue(char* trackingNum) {
 		Package* pkg = (Package*)current->data;
 		if (strcmp(pkg->trackingNum, trackingNum) == 0 && pkg->isHomeDelivered && pkg->packageState == Pending) {
 			pkg->packageState = Delivered;
-			pkg->time.delivered = getStationTime(); // 更新取件时间
+			pkg->time.delivered = getStationTime();
+			updateShelfAfterPickup(pkg);
 			messbox("确认已送达成功");
 			//添加日志
 			Log tempLog = {};
@@ -614,7 +608,6 @@ void pickUpFromHomeMakeTrue(char* trackingNum) {
 		Package* pkg = (Package*)current->data;
 		if (strcmp(pkg->trackingNum, trackingNum) == 0 && pkg->isHomeSent && pkg->packageState == Ordered) {
 			pkg->isHomeSent = false;
-			messbox("确认已成功取件");
 			//添加日志
 			Log tempLog = {};
 			sprintf_s(tempLog.description, DESCR, "运营员到楼取件 单号%s 收件人电话%s", pkg->trackingNum, pkg->receiverPhone);
@@ -622,6 +615,7 @@ void pickUpFromHomeMakeTrue(char* trackingNum) {
 			list_add(getLogs(), &tempLog);
 			//保存日志
 			list_save(getLogs());
+			messbox("确认已成功取件");
 			break;
 		}
 		current = current->next;
@@ -663,7 +657,7 @@ void sendNotificationWindow(int page, long long sendNotificationTotalNumber, cha
 	if (end > sendNotificationTotalNumber) {
 		end = sendNotificationTotalNumber; // 最后一页的结束位置
 	}
-	text(150, 50, "快递单号"); text(250, 50, "取件码"); text(400, 50, "收件人电话"); text(650, 50, "送达地址");
+	text(50, 50, "快递单号"); text(250, 50, "取件码"); text(400, 50, "收件人电话"); text(650, 50, "送达地址");
 	long long flag = 0;
 	while (current) {
 		Package* pkg = (Package*)current->data;
@@ -671,7 +665,7 @@ void sendNotificationWindow(int page, long long sendNotificationTotalNumber, cha
 		if (hoursDiff > customHoursDiff && pkg->packageState == Pending) {
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(150, 50 + (flag - start + 1) * 50, pkg->trackingNum); // 快递单号
+				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum); // 快递单号
 				text(250, 50 + (flag - start + 1) * 50, pkg->pickupCode); // 取件码
 				text(400, 50 + (flag - start + 1) * 50, pkg->receiverPhone); // 收件人电话
 				text(650, 50 + (flag - start + 1) * 50, pkg->senderAddress); // 送件地址
@@ -744,8 +738,7 @@ void confirmPointDelivery(char* trackingNum) {
 				return;
 			}
 			pkg->packageState = Shipped; // 更新状态为已寄出
-			pkg->time.shipped = getStationTime(); // 更新寄件时间
-
+			pkg->time.shipped = getStationTime();
 			messbox("确认已寄出成功");
 			// 添加日志
 			Log tempLog = {};
@@ -804,7 +797,6 @@ void updateShelfAfterPickup(Package* pkg) {
 	// 保存货架状态  
 	saveShelves();
 
-	printf("[信息] 货架 %d-%d 状态已更新: 剩余容量 %.2f, 包裹数 %d\n",
-		shelfId + 1, levelNum + 1, sl->volumeCapacity - sl->occupiedVolume, sl->packageNum);
+	//printf("[信息] 货架 %d-%d 状态已更新: 剩余容量 %.2f, 包裹数 %d\n",shelfId + 1, levelNum + 1, sl->volumeCapacity - sl->occupiedVolume, sl->packageNum);
 }
 

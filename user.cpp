@@ -152,7 +152,7 @@ void refusePackage(char* trackingNum)
 	list_save(getPackages());
 	//添加日志
 	Log tempLog = {};
-	sprintf_s(tempLog.description, DESCR, "用户%s拒收了包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
+	sprintf_s(tempLog.description, DESCR, "用户%s拒收包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
 	tempLog.createdTime = getStationTime();
 	list_add(getLogs(), &tempLog);
 	//保存日志
@@ -167,7 +167,7 @@ void deliverToHomePackage(char* trackingNum,char* receiverAddress) {
 	// 查找待取件包裹
 	Package refPackage{};
 	strncpy(refPackage.trackingNum, trackingNum, TRACKING_NUM);
-	strncpy(refPackage.receiverPhone, g_currentUser->phoneNumber, PHONE - 1);
+	strncpy(refPackage.receiverPhone, g_currentUser->phoneNumber, PHONE);
 	refPackage.packageState = Pending;
 	Package* foundPackage = (Package*)list_find(packageList, &refPackage, TRACKINGNUM_MODE| RECEIVER_PHONE_MODE| PACKAGESTATE_MODE, cmpPackage);
 	if (foundPackage == NULL)
@@ -186,7 +186,7 @@ void deliverToHomePackage(char* trackingNum,char* receiverAddress) {
 	list_save(getPackages());
 	// 添加日志
 	Log tempLog = {};
-	sprintf_s(tempLog.description, DESCR, "用户%s选择送件到楼了包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
+	sprintf_s(tempLog.description, DESCR, "用户%s选择送件到楼包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
 	tempLog.createdTime = getStationTime();
 	list_add(getLogs(), &tempLog);
 	// 保存日志
@@ -216,7 +216,7 @@ void cancelPackage(char* trackingNum)
 	list_save(getPackages());
 	// 添加日志
 	Log tempLog = {};
-	sprintf_s(tempLog.description, DESCR, "用户%s取消了包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
+	sprintf_s(tempLog.description, DESCR, "用户%s取消包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
 	tempLog.createdTime = getStationTime();
 	list_add(getLogs(), &tempLog);
 	// 保存日志
@@ -231,7 +231,7 @@ void pickupPackage(char* trackingNum)
 	//查找待取件包裹
 	Package refPackage{};
 	strncpy(refPackage.trackingNum, trackingNum, TRACKING_NUM);
-	strncpy(refPackage.receiverPhone, g_currentUser->phoneNumber, PHONE - 1);
+	strncpy(refPackage.receiverPhone, g_currentUser->phoneNumber, PHONE);
 	Package* foundPackage = (Package*)list_find(packageList, &refPackage, TRACKINGNUM_MODE | RECEIVER_PHONE_MODE, cmpPackage);
 	//包裹未找到
 	if (foundPackage == NULL)
@@ -249,7 +249,7 @@ void pickupPackage(char* trackingNum)
 	list_save(getPackages());
 	//添加日志
 	Log tempLog = {};
-	sprintf_s(tempLog.description, DESCR, "用户%s签收了包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
+	sprintf_s(tempLog.description, DESCR, "用户%s签收包裹%s", g_currentUser->phoneNumber, foundPackage->trackingNum);
 	tempLog.createdTime = getStationTime();
 	list_add(getLogs(), &tempLog);
 	//保存日志
@@ -264,13 +264,13 @@ void sendPackageInfo(char* packageName, char* receiverAddress, char* receiverPho
 	//填写包裹名称
 	strncpy(package.packageName, packageName, NAME);
 	//自动填充寄件地址
-	strcpy_s(package.senderAddress, ADDRESS, "吉大大学城");
+	strcpy_s(package.senderAddress, ADDRESS, "吉林大学大学城");
 	//填写取件地址
 	strncpy(package.receiverAddress, receiverAddress, ADDRESS);
 	// 自动填充寄件人手机号
 	strcpy_s(package.senderPhone, PHONE, g_currentUser->phoneNumber);
 	// 填写取件人手机号
-	strncpy(package.receiverPhone, receiverPhone, PHONE-1);
+	strncpy(package.receiverPhone, receiverPhone, PHONE);
 	//填写重量
 	package.weight = weight;
 	//填写体积
@@ -335,27 +335,7 @@ void sendPackageInfo(char* packageName, char* receiverAddress, char* receiverPho
 	}
 	// 结算运费
 	package.shippingFee = calculateShippingFee(&package, g_currentUser);
-	//下单
-		//使用优惠券
-	//用户经验值增加
-	g_currentUser->experience += ((int)log(package.shippingFee) + 1) * EXP_COEF;
-	//生成快递单号
-	strcpy_s(package.trackingNum, TRACKING_NUM, generateTrackingNumber());
-	//添加待寄出包裹
-	package.pickupCode[0] = '\0';
-	package.packageState = Ordered;
-	package.time = { getStationTime(),-1,-1,-1,-1,-1};
-	list_add(getPackages(), &package);
-	//保存包裹
-	list_save(getPackages());
-	//添加日志
-	Log tempLog = {};
-	sprintf_s(tempLog.description, DESCR, "用户%s下单了包裹%s", g_currentUser->phoneNumber, package.trackingNum);
-	tempLog.createdTime = getStationTime();
-	list_add(getLogs(), &tempLog);
-	// 保存日志
-	list_save(getLogs());
-	//驿站盈利10%(未完成)
+	
 	wchar_t wtext[256];
 	char arr[20] = { '\0' };
 	sprintf(arr, "%.2f", package.shippingFee);
@@ -363,7 +343,39 @@ void sendPackageInfo(char* packageName, char* receiverAddress, char* receiverPho
 	if (len > 0)
 	{
 		HWND hnd = GetHWnd();
-		MessageBoxW(hnd, wtext, L"寄件金额为：", MB_OK);
+		MessageBoxW(hnd, wtext, L"寄件金额: ", MB_OK);
+		int result = MessageBox(hnd, "确定下单?", "提示", MB_OKCANCEL);
+		if (result == 1)
+		{
+			messbox("下单成功! ");
+			//用户经验值增加
+			g_currentUser->experience += ((int)log(package.shippingFee) + 1) * EXP_COEF;
+			//生成快递单号
+			strcpy_s(package.trackingNum, TRACKING_NUM, generateTrackingNumber());
+			//添加待寄出包裹
+			package.packageState = Ordered;
+			package.time.ordered = getStationTime();
+			list_add(getPackages(), &package);
+			//保存包裹
+			list_save(getPackages());
+			//添加日志
+			Log tempLog = {};
+			sprintf_s(tempLog.description, DESCR, "用户%s下单包裹%s", g_currentUser->phoneNumber, package.trackingNum);
+			tempLog.createdTime = getStationTime();
+			list_add(getLogs(), &tempLog);
+			// 保存日志
+			list_save(getLogs());
+			// 保存用户
+			list_save(userList);
+		}
+		else if (result == 2)
+		{
+			return;
+		}
+		else
+		{
+			;
+		}
 	}
 }
 void userupgrade()
@@ -394,42 +406,51 @@ void sendticket(int ticketTypeOption, char* pkgTrackingNum)
 	}
 	Package refPackage{};
 	strncpy(refPackage.trackingNum, pkgTrackingNum, TRACKING_NUM);
-	strncpy(refPackage.receiverPhone, g_currentUser->phoneNumber, PHONE - 1);
+	strncpy(refPackage.receiverPhone, g_currentUser->phoneNumber, PHONE);
 	Package* foundPackage = (Package*)list_find(packageList, &refPackage, TRACKINGNUM_MODE | RECEIVER_PHONE_MODE, cmpPackage);
 	if (foundPackage == NULL)
 	{//找不到
-		messbox("该快递单号的\"已签收\"包裹不存在！\n");
+		messbox("该快递单号的\"已签收\"包裹不存在！");
 		return;
 	}
 	// 发送
 	tempTicket.ticketId = generateTicketId();
 	// 添加工单
 	tempTicket.createdTime = getStationTime();
-	strncpy(tempTicket.phoneNumber, g_currentUser->phoneNumber, PHONE-1);
+	strncpy(tempTicket.phoneNumber, g_currentUser->phoneNumber, PHONE);
 	list_add(getTickets(), &tempTicket);
 	// 保存工单
 	list_save(getTickets());
 	// 添加日志
-	Log tempLog = {};
-	sprintf_s(tempLog.description, DESCR, "用户%s发送了工单%.20lld", g_currentUser->phoneNumber, generateTicketId());
-	tempLog.createdTime = getStationTime();
-
-	// 保存日志
-	list_add(getLogs(), &tempLog);
-	list_save(getLogs());
 	messbox("工单发送成功！");
 }
-void exchangecoupons()
+void exchangecoupons(int number)
 {
+	//优惠券开始时间是3.1日0：00，三个月后就是6.1日0：00
+	double threeMonthsInSeconds = (31 + 30 + 31) * 24 * 3600; // 三个月的秒数差
+	struct tm activitystarttime = {};
+	activitystarttime.tm_year = 125;
+	activitystarttime.tm_mon = 2;//2代表3月
+	activitystarttime.tm_mday = 1;
+	activitystarttime.tm_hour = 0;
+	activitystarttime.tm_min = 0;
+	activitystarttime.tm_sec = 0;
+	mktime(&activitystarttime);
+	time_t 	activitystarttime_s = mktime(&activitystarttime);//开始日期秒数
+	if (difftime(getStationTime(), activitystarttime_s) >= threeMonthsInSeconds)// 超过活动有效期
+	{
+		messbox("优惠活动已结束! ");
+		return;
+	}
 	//兑换优惠券
-	if (g_currentUser->experience < EXP_OF_PER_COUPON)
+	if (g_currentUser->experience < EXP_OF_PER_COUPON * number)
 	{
 		messbox("经验值不足！");
+		return;
 	}
-	else
-	{
-		g_currentUser->couponCount++;
-		g_currentUser->experience -= EXP_OF_PER_COUPON;
-		messbox("兑换成功！");
-	}
+	g_currentUser->couponCount += number;
+	g_currentUser->experience -= EXP_OF_PER_COUPON * number;
+	messbox("兑换成功！");
+	// 保存用户
+	list_save(userList);
 }

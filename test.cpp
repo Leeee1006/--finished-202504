@@ -9,7 +9,7 @@ int main()
 	loadPackages();
 	loadTime();
 	deleteExpiredLogs();
-	initgraph(1080, 665, EX_SHOWCONSOLE);
+	initgraph(1080, 665);
 	setbkcolor(WHITE);
 	setlinestyle(PS_SOLID, 2);
 	cleardevice();

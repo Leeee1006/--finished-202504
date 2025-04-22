@@ -12,17 +12,43 @@ void  trackPackageFoTrackingNumWindow(int page, long long TotalNumber, char* tra
 		end = TotalNumber;  // 最后一页的结束位置
 	}
 	ListNode* current = packageList->head->next;
-	text(50, 50, "快递单号"); text(200, 50, "寄件人电话"); text(400, 50, "收件人电话"); text(600, 50, "取件地址"); text(800, 50, "寄件地址");
+	text(10, 50, "快递单号"); text(150, 50, "包裹状态"); text(250, 50, "收件人电话"); text(400, 50, "取件地址"); text(800, 50, "寄件地址");
 	long long flag = 0;
 	while (current) {
 		Package* pkg = (Package*)current->data;
 		if (strncmp(pkg->trackingNum, trackingNum, TRACKING_NUM) == 0) {
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
-				text(200, 50 + (flag - start + 1) * 50, pkg->senderPhone);//寄件人电话
-				text(400, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
-				text(600, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//取件地址
+				text(10, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				switch (pkg->packageState)
+				{
+				case Ordered:
+					text(150, 50 + (flag - start + 1) * 50, "待寄出");
+					break;
+				case Shipped:
+					text(150, 50 + (flag - start + 1) * 50, "已寄出");
+					break;
+				case Pending:
+					text(150, 50 + (flag - start + 1) * 50, "待取");
+					break;
+				case Delivered:
+					text(150, 50 + (flag - start + 1) * 50, "已签收");
+					break;
+				case Refused:
+					text(150, 50 + (flag - start + 1) * 50, "已拒收");
+					break;
+				case Canceled:
+					text(150, 50 + (flag - start + 1) * 50, "已取消");
+					break;
+				case Misdelivered:
+					text(150, 50 + (flag - start + 1) * 50, "误取");
+					break;
+				case DamagedLost:
+					text(150, 50 + (flag - start + 1) * 50, "损坏/丢失");
+					break;
+				}
+				text(250, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
+				text(400, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//取件地址
 				text(800, 50 + (flag - start + 1) * 50, pkg->senderAddress);//寄件地址
 			}
 		}
@@ -56,45 +82,45 @@ void trackPackageFoSenderPhoneWindow(int page, long long TotalNumber, char* send
 		end = TotalNumber;  // 最后一页的结束位置
 	}
 	ListNode* current = packageList->head->next;
-	text(50, 50, "快递单号"); text(200, 50, "包裹状态"); text(400, 50, "收件人电话"); text(600, 50, "取件地址"); text(800, 50, "寄件地址");
+	text(10, 50, "快递单号"); text(150, 50, "包裹状态"); text(250, 50, "收件人电话"); text(400, 50, "取件地址"); text(900, 50, "寄件地址");
 	long long flag = 0;
 	while (current) {
 		Package* pkg = (Package*)current->data;
 		if (strncmp(pkg->senderPhone, senderPhone, PHONE) == 0) {
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				text(10, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
 				switch (pkg->packageState)
 				{
 				case Ordered:
-					text(200, 50 + (flag - start + 1) * 50, "待寄出");
+					text(150, 50 + (flag - start + 1) * 50, "待寄出");
 					break;
 				case Shipped:
-					text(200, 50 + (flag - start + 1) * 50, "已寄出");
+					text(150, 50 + (flag - start + 1) * 50, "已寄出");
 					break;
 				case Pending:
-					text(200, 50 + (flag - start + 1) * 50, "待取");
+					text(150, 50 + (flag - start + 1) * 50, "待取");
 					break;
 				case Delivered:
-					text(200, 50 + (flag - start + 1) * 50, "已签收");
+					text(150, 50 + (flag - start + 1) * 50, "已签收");
 					break;
 				case Refused:
-					text(200, 50 + (flag - start + 1) * 50, "已拒收");
+					text(150, 50 + (flag - start + 1) * 50, "已拒收");
 					break;
 				case Canceled:
-					text(200, 50 + (flag - start + 1) * 50, "已取消");
+					text(150, 50 + (flag - start + 1) * 50, "已取消");
 					break;
 				case Misdelivered:
-					text(200, 50 + (flag - start + 1) * 50, "误取");
+					text(150, 50 + (flag - start + 1) * 50, "误取");
 					break;
 				case DamagedLost:
-					text(200, 50 + (flag - start + 1) * 50, "损坏/丢失");
+					text(150, 50 + (flag - start + 1) * 50, "损坏/丢失");
 					break;
 				}
 
-				text(400, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
-				text(600, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//取件地址
-				text(800, 50 + (flag - start + 1) * 50, pkg->senderAddress);//寄件地址
+				text(250, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
+				text(400, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//取件地址
+				text(900, 50 + (flag - start + 1) * 50, pkg->senderAddress);//寄件地址
 			}
 		}
 		current = current->next;
@@ -130,44 +156,44 @@ void trackPackageFoReceiverPhoneWindow(int page, long long TotalNumber, char* re
 		end = TotalNumber;  // 最后一页的结束位置
 	}
 	ListNode* current = packageList->head->next;
-	text(50, 50, "快递单号"); text(200, 50, "包裹状态"); text(400, 50, "收件人电话"); text(600, 50, "取件地址"); text(800, 50, "寄件地址");
+	text(10, 50, "快递单号"); text(150, 50, "包裹状态"); text(250, 50, "收件人电话"); text(400, 50, "取件地址"); text(650, 50, "寄件地址");
 	long long flag = 0;
 	while (current) {
 		Package* pkg = (Package*)current->data;
 		if (strncmp(pkg->receiverPhone, receiverPhone, PHONE) == 0) {
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				text(10, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
 				switch (pkg->packageState)
 				{
 				case Ordered:
-					text(200, 50 + (flag - start + 1) * 50, "待寄出");
+					text(150, 50 + (flag - start + 1) * 50, "待寄出");
 					break;
 				case Shipped:
-					text(200, 50 + (flag - start + 1) * 50, "已寄出");
+					text(150, 50 + (flag - start + 1) * 50, "已寄出");
 					break;
 				case Pending:
-					text(200, 50 + (flag - start + 1) * 50, "待取");
+					text(150, 50 + (flag - start + 1) * 50, "待取");
 					break;
 				case Delivered:
-					text(200, 50 + (flag - start + 1) * 50, "已签收");
+					text(150, 50 + (flag - start + 1) * 50, "已签收");
 					break;
 				case Refused:
-					text(200, 50 + (flag - start + 1) * 50, "已拒收");
+					text(150, 50 + (flag - start + 1) * 50, "已拒收");
 					break;
 				case Canceled:
-					text(200, 50 + (flag - start + 1) * 50, "已取消");
+					text(150, 50 + (flag - start + 1) * 50, "已取消");
 					break;
 				case Misdelivered:
-					text(200, 50 + (flag - start + 1) * 50, "误取");
+					text(150, 50 + (flag - start + 1) * 50, "误取");
 					break;
 				case DamagedLost:
-					text(200, 50 + (flag - start + 1) * 50, "损坏/丢失");
+					text(150, 50 + (flag - start + 1) * 50, "损坏/丢失");
 					break;
 				}
-				text(400, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
-				text(600, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//取件地址
-				text(800, 50 + (flag - start + 1) * 50, pkg->senderAddress);//寄件地址
+				text(250, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
+				text(400, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//取件地址
+				text(650, 50 + (flag - start + 1) * 50, pkg->senderAddress);//寄件地址
 			}
 		}
 		current = current->next;
@@ -215,28 +241,29 @@ void AddressMisdelivery(long long ticketId)
 	Ticket refTicket = {};
 	refTicket.ticketId = ticketId;
 	refTicket.ticketType = Miscollection;
-	Ticket* foundTicket = (Ticket*)list_find(g_tickets, &refTicket, TICKETID_MODE | TICKET_TYPE_MODE, cmpPackage);
+	Ticket* foundTicket = (Ticket*)list_find(g_tickets, &refTicket, TICKETID_MODE | TICKET_TYPE_MODE, cmpTicket);
 	if (foundTicket == NULL)
 	{
 		messbox("工单不存在!");
 		return;
 	}
 	foundTicket->isHandled = true;
+	list_delete(g_tickets, &refTicket, TICKETID_MODE, cmpTicket);//处理成功，删除该节点
+	list_save(g_tickets);
+	// 添加日志
+	Log tmpLog = {};
+	sprintf_s(tmpLog.description, DESCR, "管理员处理工单 编号%d", foundTicket->ticketId);
+	tmpLog.createdTime = getStationTime();
+	list_add(g_logs, &tmpLog);
+	list_save(g_logs);
+	messbox("处理成功");
+
 	Package refPackage{};
 	strncpy(refPackage.trackingNum, foundTicket->pkgTrackingNum, TRACKING_NUM);
 	Package* foundPackage = (Package*)list_find(packageList, &refPackage, TRACKINGNUM_MODE, cmpPackage);
 	if (foundPackage != NULL)
 	{
 		foundPackage->packageState = Misdelivered;
-		list_delete(g_tickets, &refTicket, TICKETID_MODE, cmpTicket);//处理成功，删除该节点
-		Log tempLog = {};
-		sprintf_s(tempLog.description, DESCR, "管理员处理了工单%.20lld", foundTicket->ticketId);
-		tempLog.createdTime = time(NULL);
-
-		// 保存日志
-		list_add(getLogs(), &tempLog);
-		list_save(getLogs());
-		messbox("该误取工单处理成功");
 	}
 }
 
@@ -245,28 +272,28 @@ void AddressDamageLoss(long long ticketId)
 	Ticket refTicket = {};
 	refTicket.ticketId = ticketId;
 	refTicket.ticketType = DamageLoss;
-	Ticket* foundTicket = (Ticket*)list_find(g_tickets, &refTicket, TICKETID_MODE | TICKET_TYPE_MODE, cmpPackage);
+	Ticket* foundTicket = (Ticket*)list_find(g_tickets, &refTicket, TICKETID_MODE | TICKET_TYPE_MODE, cmpTicket);
 	if (foundTicket == NULL)
 	{
 		messbox("工单不存在!");
 		return;
 	}
 	foundTicket->isHandled = true;
+	list_delete(g_tickets, &refTicket, TICKETID_MODE, cmpTicket);//处理成功，删除该节点
+	list_save(g_tickets);
+	// 添加日志
+	Log tmpLog = {};
+	sprintf_s(tmpLog.description, DESCR, "管理员处理工单 编号%d", foundTicket->ticketId);
+	tmpLog.createdTime = getStationTime();
+	list_add(g_logs, &tmpLog);
+	list_save(g_logs);
+	messbox("处理成功");
+
 	Package refPackage{};
 	strncpy(refPackage.trackingNum, foundTicket->pkgTrackingNum, TRACKING_NUM);
 	Package* foundPackage = (Package*)list_find(packageList, &refPackage, TRACKINGNUM_MODE, cmpPackage);
 	if (foundPackage != NULL)
 	{
 		foundPackage->packageState = DamagedLost;
-		list_delete(g_tickets, &refTicket, TICKETID_MODE, cmpTicket);//处理成功，删除该节点
-		Log tempLog = {};
-		sprintf_s(tempLog.description, DESCR, "管理员处理了工单%.20lld", foundTicket->ticketId);
-		tempLog.createdTime = time(NULL);
-
-		// 保存日志
-		list_add(getLogs(), &tempLog);
-		list_save(getLogs());
-		messbox("该损坏丢失工单处理成功");
 	}
 }
-

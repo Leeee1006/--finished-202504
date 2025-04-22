@@ -5,7 +5,7 @@ void buildWindow()
 	loadimage(&img, "cai.jpg");
 	putimage(0, 0, &img);
 	settextcolor(BLACK);
-	settextstyle(20, 0, FONT);
+	settextstyle(20, 0, FONT, 0, 0, FW_BOLD, false, false, false);
 	outtextxy(0, 0, "驿站时间:");
 	char buf[50] = "";
 	strcpy_s(buf, 50, formatTime(getStationTime()));
@@ -63,28 +63,48 @@ void isinputbox(int x, int y, int flag, ExMessage m, char* s)
 		}
 		else if (flag == -1)
 		{//字符串转数字,体积限制
-			double num = (double)atof(s);
-			if (num <= 0 || validateVolume(num) == 0)
-			{
-				messbox("体积格式错误");
+			char* endptr;
+			double num = strtod(s, &endptr);
+			if (s == endptr|| *endptr != '\0') {
+				messbox("[错误]包含非法字符");
+				return;
 			}
-			else
-			{
-				s[9] = '\0';
-				outtextxy(x + width, y + height, s);
+			if (strlen(s) > 8) {
+				messbox("[错误] 小数位超过六位");
+				return;
+			}
+			else {
+				if (validateVolume(num) == 0)
+				{
+					;
+				}
+				else
+				{
+					outtextxy(x + width, y + height, s);
+				}
 			}
 		}
 		else if (flag == -2)
 		{//字符串转数字,重量限制
-			double num = (double)atof(s);
-			if (num <= 0 || validateWeight(num) == 0)
-			{
-				messbox("重量格式错误");
+			char* endptr;
+			double num = strtod(s, &endptr);
+			if (s == endptr || *endptr != '\0') {
+				messbox("[错误]包含非法字符");
+				return;
 			}
-			else
-			{
-				s[9] = '\0';
-				outtextxy(x + width, y + height, s);
+			if (strlen(s) > 5) {
+				messbox("[错误] 小数位超过三位");
+				return;
+			}
+			else {
+				if (validateWeight(num) == 0)
+				{
+					;
+				}
+				else
+				{
+					outtextxy(x + width, y + height, s);
+				}
 			}
 		}
 	}
@@ -152,7 +172,7 @@ void drawChioce(struct choice* ch)
 void label(int x, int y, const char* arr)
 {//输入框文字标签
 	settextcolor(BLACK);
-	settextstyle(30, 0, FONT);
+	settextstyle(30, 0, FONT, 0, 0, FW_BOLD, false, false, false);
 	setbkmode(TRANSPARENT);
 	outtextxy(x, y, arr);
 }
@@ -162,17 +182,23 @@ void label(int x, int y, double number)
 	sprintf(arr, "%.2f", number);
 	label(x, y, arr);
 }
+void label(int x, int y, int number)
+{//重载函数，编写数字，颜色为黑色
+	char arr[50] = { '\0' };
+	sprintf(arr, "%d", number);
+	label(x, y, arr);
+}
 void text(int x, int y, const char* arr)
 {//编写文字，文字颜色为黑色
 	settextcolor(BLACK);
-	settextstyle(18, 0, FONT);
+	settextstyle(22, 0, FONT, 0, 0, FW_BOLD, false, false, false);
 	setbkmode(TRANSPARENT);
 	outtextxy(x, y, arr);
 }
 void textRed(int x, int y, const char* arr)
 {//编写文字,文字颜色为红色
 	settextcolor(RED);
-	settextstyle(18, 0, FONT);
+	settextstyle(22, 0, FONT, 0, 0, FW_BOLD, false, false, false);
 	setbkmode(TRANSPARENT);
 	outtextxy(x, y, arr);
 }
@@ -1094,13 +1120,13 @@ void sendPackage()
 {//我要寄件
 	buildWindow();
 	struct button* p1 = button(250, 600, "返回");
-	struct button* p2 = button(550, 600, "下一步");
+	struct button* p2 = button(550, 600, "下单");
 	label(50, 50, "包裹名称:");
 	char packageName[NAME] = { '\0' };
 	inputbox(200, 50);
 	text(400, 50, "(六个字以内)");
 
-	label(500, 50, "重量:");
+	label(520, 50, "重量:");
 	char packageweight[DIGITS] = { '\0' };
 	double weight = 0.0;
 	inputbox(650, 50);
@@ -1146,6 +1172,8 @@ void sendPackage()
 	int couponOption = -1;
 	struct choice* ch9 = choice(400, 340, "使用");
 	struct choice* ch10 = choice(500, 340, "不用");
+	label(600, 340, "当前优惠券数量：");
+	label(820, 340, g_currentUser->couponCount);
 
 	BeginBatchDraw();
 	ExMessage m;
@@ -1256,7 +1284,7 @@ void sendPackage()
 	if (flag == 2)
 	{
 		free(p2);
-		if (homeSentOption == -1)//
+		if (homeSentOption == -1)
 		{
 			messbox("信息未填写完整");
 			cleardevice();
@@ -1296,7 +1324,7 @@ void sendPackage()
 			cleardevice();
 			sendPackage();
 		}
-		if (strcmp(receiverAddress, "吉大大学城") == 0)	//取件地址与寄件地址相同
+		if (strcmp(receiverAddress, "吉林大学大学城") == 0)	//取件地址与寄件地址相同
 		{
 			messbox("取件地址不能与寄件地址相同，请重新输入！");
 			cleardevice();
@@ -1508,9 +1536,15 @@ void userUpgrade()
 void exchangeCoupons()
 {//优惠福利
 	buildWindow();
-	label(100, 200, "当前经验值：");
-	label(300, 200, g_currentUser->experience);
-	label(100, 300, "兑换优惠券需要消耗10点经验值");
+	label(100, 50, "当前经验值：");
+	label(300, 50, (int)g_currentUser->experience);
+	label(100, 100, "兑换优惠券需要消耗10点经验值");
+	label(100, 150, "当前优惠券数量：");
+	label(350, 150, (int)g_currentUser->couponCount);
+	label(100, 200, "请输入需要兑换的优惠券数量：");
+	inputbox(400, 300);
+	char num[DIGITS] = { '\0' };
+	int number = 0;
 	struct button* p1 = button(250, 600, "返回");
 	struct button* p2 = button(550, 600, "兑换");
 	ExMessage m;
@@ -1522,6 +1556,8 @@ void exchangeCoupons()
 		drawButton(p2);
 		if (peekmessage(&m, EX_MOUSE))
 		{
+			isinputbox(400, 300, 2, m, num);
+			number = (int)atof(num);
 			if (isClickButton(p1, m))
 			{
 				flag = 1;
@@ -1545,7 +1581,7 @@ void exchangeCoupons()
 	if (flag == 2)
 	{
 		free(p2);
-		exchangecoupons();
+		exchangecoupons(number);
 		cleardevice();
 		personalCenter();
 	}
@@ -1894,8 +1930,10 @@ void timeOperation(int year, int month, int day)
 			us->couponCount = 0;
 		}
 	}
-	//下面是工单删除部分
+	list_save(userList);
+	//下面是日志删除部分
 	deleteExpiredLogs();
+	list_save(getLogs());
 	messbox("时间校准成功！");
 }
 //管理员智能库存界面
@@ -2994,13 +3032,30 @@ void putInMessage()
 	}
 	if (flag == 2)
 	{
+		if (isTrackingNumExist(trackingNum)) {
+			messbox("快递单号已存在，请重新输入。");
+			free(p2);
+			cleardevice();
+			putInMessage();
+		}
 		char pickupCode[50] = { '\0' };
-		strncpy(pickupCode, InputPackageInfo(trackingNum, packageName, packagetype, v, w, senderAddress, receiverPhone), sizeof(pickupCode) - 1);
-		pickupCode[sizeof(pickupCode) - 1] = '\0';
-		messbox(pickupCode);
-		free(p2);
-		cleardevice();
-		putInMessage();
+		char* p;
+		p = InputPackageInfo(trackingNum, packageName, packagetype, v, w, senderAddress, receiverPhone);
+		if (p != NULL) {
+			strncpy(pickupCode,p, sizeof(pickupCode) - 1);
+			pickupCode[sizeof(pickupCode) - 1] = '\0';
+			messbox(pickupCode);
+			free(p2);
+			cleardevice();
+			putInMessage();
+		}
+		else {
+			messbox("包裹放置失败，请重新输入。");
+			free(p2);
+			cleardevice();
+			putInMessage();
+
+		}
 	}
 }
 //送件到楼
@@ -3123,6 +3178,7 @@ void pickUpFromHomeWindow()
 	{
 	case 1:
 		free(p1);
+		sortPackagesByTime(0);
 		pickUpFromHomeMessage();
 		break;
 	case 2:

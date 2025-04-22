@@ -13,82 +13,20 @@ int rand_range(int min, int max)
 }
 
 // 生成2025年随机日期
-time_t Generate_2025_Date(int choice)
-{
+time_t Generate_2025_Date(int choice) {
     struct tm tm = { 0 };
-    tm.tm_hour = 0;
-    tm.tm_min = 0;
+    // Initialize time components
+    tm.tm_hour = rand_range(0, 23);  // Random hour 0-23
+    tm.tm_min = rand_range(0, 59);    // Random minute 0-59
     tm.tm_sec = 0;
-int s = rand_range(0, 1);
-    switch (choice)
-    {        
-        
 
-    case 0:// 基础
+    int s = rand_range(0, 1);
+    const int months[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 }; // Days in each month (2024)
+
+    switch (choice) {
+    case 0: // 基础
         tm.tm_year = 124 + s;
-        if (s == 1)//2025
-        {
-            tm.tm_mon = rand_range(0, 3); // 0到3个月之间
-            if (tm.tm_mon == 0) {
-                tm.tm_mday = rand_range(1, 31); // 1月15--31天
-            }
-            else if (tm.tm_mon == 1) {
-                tm.tm_mday = rand_range(1, 28); // 2月15--28天（2025年是平年）
-            }
-            else if (tm.tm_mon == 2) {
-                tm.tm_mday = rand_range(1, 31); // 3月31天
-            }
-            else {
-                tm.tm_mday = rand_range(1, 15); // 4月15天
-            }
-        }
-        if (s == 0)//2024
-        {
-            tm.tm_mon = rand_range(0, 11);
-            tm.tm_mday = rand_range(1, months[tm.tm_mon]);
-        }
-        break;
-
-    case 1:// 春节（2025年2月19日）
-        tm.tm_year = 125;
-        tm.tm_mon = 1; // 2月
-        tm.tm_mday = rand_range(15, 31);
-        break;
-
-    case 2:// 儿童节（6月1日），修改为最接近的日期
-        tm.tm_year = 124;
-        tm.tm_mon = 5; // 6月（5表示6月）
-        tm.tm_mday = rand_range(1, 3);
-        break;
-
-    case 3:// 双11（11月11日），修改为最接近的日期
-        tm.tm_year = 124;
-        tm.tm_mon = 10; // 11月（10表示11月）
-        tm.tm_mday = rand_range(1, 15);
-        break;
-
-    case 4:// 中秋节（2024年9月13日），修改为最接近的日期
-        tm.tm_year = 124;
-        tm.tm_mon = 8; // 9月（8表示9月）
-        tm.tm_mday = rand_range(1, 15);
-        break;
-
-    case 5:// 双12（12月12日），修改为最接近的日期
-        tm.tm_year = 124;
-        tm.tm_mon = 11; // 12月（11表示12月）
-        tm.tm_mday = rand_range(1, 15);
-        break;
-
-    case 6:// 开学季（2024年8月29日）
-        tm.tm_year = 124;
-        tm.tm_mon = 7; // 8月
-        tm.tm_mday = rand_range(25, 31);
-        break;
-
-    default:// 默认
-        tm.tm_year = 124 + s;
-        if (s == 1)//2025
-        {
+        if (s == 1) { // 2025
             tm.tm_mon = rand_range(0, 3); // 0到3个月之间
             if (tm.tm_mon == 0) {
                 tm.tm_mday = rand_range(1, 31); // 1月31天
@@ -103,21 +41,79 @@ int s = rand_range(0, 1);
                 tm.tm_mday = rand_range(1, 15); // 4月15天
             }
         }
-        if (s == 0)//2024
-        {
+        if (s == 0) { // 2024
+            tm.tm_mon = rand_range(0, 11);
+            tm.tm_mday = rand_range(1, months[tm.tm_mon]);
+        }
+        break;
+
+    case 1: // 春节（2025年2月19日）
+        tm.tm_year = 125;
+        tm.tm_mon = 1; // 2月
+        tm.tm_mday = rand_range(15, 31);
+        break;
+
+    case 2: // 儿童节（6月1日），修改为最接近的日期
+        tm.tm_year = 124;
+        tm.tm_mon = 5; // 6月（5表示6月）
+        tm.tm_mday = rand_range(1, 3);
+        break;
+
+    case 3: // 双11（11月11日），修改为最接近的日期
+        tm.tm_year = 124;
+        tm.tm_mon = 10; // 11月（10表示11月）
+        tm.tm_mday = rand_range(1, 15);
+        break;
+
+    case 4: // 中秋节（2024年9月13日），修改为最接近的日期
+        tm.tm_year = 124;
+        tm.tm_mon = 8; // 9月（8表示9月）
+        tm.tm_mday = rand_range(1, 15);
+        break;
+
+    case 5: // 双12（12月12日），修改为最接近的日期
+        tm.tm_year = 124;
+        tm.tm_mon = 11; // 12月（11表示12月）
+        tm.tm_mday = rand_range(1, 15);
+        break;
+
+    case 6: // 开学季（2024年8月29日）
+        tm.tm_year = 124;
+        tm.tm_mon = 7; // 8月
+        tm.tm_mday = rand_range(25, 31);
+        break;
+
+    default: // 默认
+        tm.tm_year = 124 + s;
+        if (s == 1) { // 2025
+            tm.tm_mon = rand_range(0, 3); // 0到3个月之间
+            if (tm.tm_mon == 0) {
+                tm.tm_mday = rand_range(1, 31); // 1月31天
+            }
+            else if (tm.tm_mon == 1) {
+                tm.tm_mday = rand_range(1, 28); // 2月28天（2025年是平年）
+            }
+            else if (tm.tm_mon == 2) {
+                tm.tm_mday = rand_range(1, 31); // 3月31天
+            }
+            else {
+                tm.tm_mday = rand_range(1, 15); // 4月15天
+            }
+        }
+        if (s == 0) { // 2024
             tm.tm_mon = rand_range(0, 11);
             tm.tm_mday = rand_range(1, months[tm.tm_mon]);
         }
         break;
     }
+
     // 确保时间不超出最大值2025年4月12日
-    if (tm.tm_mon == 3 && tm.tm_mday > 12) { // 如果是4月，并且天数大于12
+    if (tm.tm_year == 125 && tm.tm_mon == 3 && tm.tm_mday > 12) { // 如果是2025年4月，并且天数大于12
         tm.tm_mday = 12;
     }
 
     return mktime(&tm);
-}
-void generate_tracking_number(char* tracking_number)
+}void generate_tracking_number(char* tracking_number)
 {
     for (int i = 0; i < 10; i++) {
         // 生成0-9之间的随机数并转为字符 '0' - '9'
@@ -193,10 +189,10 @@ void CreatPackage(Package* pkg, int choice)//利用choice生成包裹的所有内容
     //分配权重,少指的是从大学城出发，多指的是从别的地方来的
     if (panduan == 10) 
     {
-        strncpy_s(pkg->senderAddress, adress2[0], ADDRESS);
-        pkg->senderAddress[ADDRESS - 1] = '\0';  // 强制终止
-        strncpy_s(pkg->receiverAddress, adress1[rand() % 49], ADDRESS);
+        strncpy_s(pkg->receiverAddress, adress2[0], ADDRESS);
         pkg->receiverAddress[ADDRESS - 1] = '\0';  // 强制终止
+        strncpy_s(pkg->senderAddress, adress1[rand() % 49], ADDRESS);
+        pkg->senderAddress[ADDRESS - 1] = '\0';  // 强制终止
         pkg->isHomeDelivered = 0;
         pkg->isHomeSent = rand() % 2;
         if (pkg->isHomeSent == 1)//想要上门寄件
@@ -231,8 +227,8 @@ void CreatPackage(Package* pkg, int choice)//利用choice生成包裹的所有内容
     pkg->shippingFee = calculateShippingFee(pkg, g_currentUser);
     // 生成联系方式
  Generate_Phone(pkg->senderPhone);
-   //strncpy(pkg->senderPhone, "15139490674", PHONE);
-    Generate_Phone(pkg->receiverPhone);
+   strncpy(pkg->receiverPhone, "15139490674", PHONE);
+  //  Generate_Phone(pkg->receiverPhone);
         // 生成取件码
     int shelfid = rand() % 10;
     int levelnum = rand() % 5;
@@ -292,50 +288,50 @@ int main() {
     g_currentUser = &tmpUser;
 
     srand((unsigned)time(NULL));
-    const int count = 10000;
+    const int count = 100;
     for (int i = 1; i <= count; i++)//基础
     {
         Package pkg;
         CreatPackage(&pkg, 0);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 10001; i <= 10300; i++)//春节
+    for (int i = 101; i <= 103; i++)//春节
     {
         Package pkg;
         CreatPackage(&pkg, 1);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 10301; i < 10500; i++)//儿童节
+    for (int i = 104; i < 105; i++)//儿童节
     {
         Package pkg;
         CreatPackage(&pkg, 2);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 10501; i < 11000; i++)//双11
+    for (int i = 106; i < 110; i++)//双11
     {
         Package pkg;
         CreatPackage(&pkg, 3);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 11001; i < 11200; i++)//中秋节
+    for (int i = 111; i < 112; i++)//中秋节
     {
         Package pkg;
         CreatPackage(&pkg, 4);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 11201; i < 11500; i++)//双12
+    for (int i = 113; i < 115; i++)//双12
     {
         Package pkg;
         CreatPackage(&pkg, 5);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 11501; i < 12000; i++)//开学季
+    for (int i = 116; i < 120; i++)//开学季
     {
         Package pkg;
         CreatPackage(&pkg, 6);
         list_add(getPackages(), &pkg);
     }
-    for (int i = 12001; i < 20000; i++)//为了凑到20000
+    for (int i = 121; i < 200; i++)//为了凑到20000
     {
         Package pkg;
         CreatPackage(&pkg, 0);

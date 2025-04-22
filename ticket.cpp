@@ -73,14 +73,14 @@ void showTicketsWindow(int currentpage, long long TicketsTotalNumber,char* searc
 		end = TicketsTotalNumber;  // 最后一页的结束位置
 	}
 	int flag = 0;
-	text(50, 50, "工单编号"); text(150, 50, "工单类型");  text(300, 50, "创建时间"); text(500, 50, "用户电话"); text(750, 50, "快递单号"); text(950, 50, "是否处理");
+	text(20, 50, "工单编号"); text(150, 50, "工单类型");  text(300, 50, "创建时间"); text(500, 50, "用户电话"); text(750, 50, "快递单号"); text(950, 50, "是否处理");
 	for (ListNode* node = g_tickets->head->next; node != NULL; node = node->next)
 	{
 		Ticket* tkt = (Ticket*)node->data;
 		flag++;
 		if (flag >= start && flag <= end)
 		{
-			text(50, 50 + (flag - start + 1) * 50, tkt->ticketId);
+			text(20, 50 + (flag - start + 1) * 50, tkt->ticketId);
 			switch (tkt->ticketType)
 			{
 			case Miscollection:

@@ -42,6 +42,8 @@ void isinputboxAdress(int x, int y, ExMessage m, char* s);
 
 void inputbox(int x, int y);
 
+void label(int x, int y, int number);
+
 void inputboxAdress(int x, int y);
 
 void drawButton(struct button* pb);

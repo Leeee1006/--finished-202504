@@ -26,6 +26,7 @@ typedef struct ListNode
 // @param growSize 内存池增长大小
 // @param dataSize 数据大小
 // @param fileName 文件名
+// @param fileNameSize 文件名大小
 // @return 新链表指针
 List* list_init(unsigned int initSize, unsigned int growSize, unsigned int dataSize, const char* fileName, unsigned int fileNameSize);
 
@@ -46,21 +47,23 @@ void list_add(List* list, void* data);
 
 // @brief 删除结点
 // @param list 链表指针
-// @param cmp 比较函数
+// @param ref 参考对象
 // @param mode 匹配模式
-void list_delete(List* list, const void* ref, unsigned long long mode, bool cmp(const void* d1, const void* d2, int mode));
+// @param cmp 比较函数
+void list_delete(List* list, const void* ref, int mode, bool cmp(const void* d1, const void* d2, int mode));
 
 // @brief 删除结点 (一般条件)
 // @param list 链表指针
-// @param cmp 条件函数
+// @param condition 条件函数
 void list_delete_ex(List* list, bool condition(const void* d));
 
 // @brief 查找结点
 // @param list 链表指针
-// @param condition 比较函数
+// @param ref 参考对象
 // @param mode 匹配模式
+// @param cmp 比较函数
 // @return 目标结点数据
-void* list_find(List* list, const void* ref, unsigned long long mode, bool cmp(const void* d1, const void* d2, int mode));
+void* list_find(List* list, const void* ref, int mode, bool cmp(const void* d1, const void* d2, int mode));
 
 // @brief 查找结点 (一般条件)
 // @param list 链表指针
@@ -77,14 +80,15 @@ void list_clear(List* list);
 void list_free(List* list);
 
 // @brief 基础函数
-// @brief 链表排序
-// @param head 链表指针
+// @brief 链表排序 (归并排序算法)
+// @param head 头指针
+// @param tail 尾指针
 // @param elementCount 结点数量
 // @param cmp 比较函数
-// @param 排序后的链表指针
+// @param 排序后的尾指针
 ListNode* list_mergeSort(ListNode* head, ListNode* tail, size_t elementCount, bool cmp(const void* d1, const void* d2));
 
 // @brief 链表排序
-// @param 链表指针
-// @param 比较函数指针
+// @param list 链表指针
+// @param cmp 比较函数指针
 void list_sort(List* list, bool cmp(const void* d1, const void* d2));

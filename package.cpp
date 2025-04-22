@@ -166,7 +166,7 @@ void showPackageOrderedWindow(int currentpage, long long totalNum, char* senderP
 		end = totalNum;  // 最后一页的结束位置
 	}
 	long long flag = 0;
-	text(50, 50, "快递单号"), text(200, 50, "取件人电话"); text(400, 50, "收件地址"); text(800, 50, "下单时间"); text(970, 50, "寄件金额");
+	text(10, 50, "快递单号"), text(150, 50, "取件人电话"); text(290, 50, "收件地址"); text(810, 50, "下单时间"); text(990, 50, "寄件金额");
 	for (ListNode* node = packageList->head->next; node != NULL; node = node->next)
 	{
 		Package* pkg = (Package*)node->data;
@@ -174,11 +174,11 @@ void showPackageOrderedWindow(int currentpage, long long totalNum, char* senderP
 		{
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
-				text(200, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//取件人电话
-				text(400, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//收件地址
-				text(800, 50 + (flag - start + 1) * 50, formatTime(pkg->time.ordered));//下单时间
-				text(970, 50 + (flag - start + 1) * 50, pkg->shippingFee);//寄件金额
+				text(10, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				text(150, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//取件人电话
+				text(290, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//收件地址
+				text(810, 50 + (flag - start + 1) * 50, formatTime(pkg->time.ordered));//下单时间
+				text(990, 50 + (flag - start + 1) * 50, pkg->shippingFee);//寄件金额
 			}
 		}
 	}
@@ -206,7 +206,7 @@ void showPackageCanceledWindow(int currentpage, long long totalNum, char* sender
 		end = totalNum;  // 最后一页的结束位置
 	}
 	long long flag = 0;
-	text(50, 50, "快递单号"), text(200, 50, "取件人电话"); text(400, 50, "收件地址"); text(800, 50, "取消时间"); text(970, 50, "寄件金额");
+	text(10, 50, "快递单号"), text(150, 50, "取件人电话"); text(290, 50, "收件地址"); text(810, 50, "取消时间"); text(990, 50, "寄件金额");
 	for (ListNode* node = packageList->head->next; node != NULL; node = node->next)
 	{
 		Package* pkg = (Package*)node->data;
@@ -214,11 +214,11 @@ void showPackageCanceledWindow(int currentpage, long long totalNum, char* sender
 		{
 			flag++;
 			if (flag >= start && flag <= end) {
-				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
-				text(200, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//取件人电话
-				text(400, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//收件地址
-				text(800, 50 + (flag - start + 1) * 50, formatTime(pkg->time.canceled));//取消时间
-				text(970, 50 + (flag - start + 1) * 50, pkg->shippingFee);//寄件金额
+				text(10, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				text(150, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//取件人电话
+				text(290, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//收件地址
+				text(810, 50 + (flag - start + 1) * 50, formatTime(pkg->time.canceled));//取消时间
+				text(990, 50 + (flag - start + 1) * 50, pkg->shippingFee);//寄件金额
 			}
 		}
 	}
@@ -248,7 +248,7 @@ void showPackageShippedWindow(int currentpage, long long totalNum, char* senderP
 		end = totalNum;  // 最后一页的结束位置
 	}
 	long long flag = 0;
-	text(50, 50, "快递单号"), text(200, 50, "收件人电话"); text(400, 50, "收件地址"); text(800, 50, "签收时间"); text(970, 50, "寄件金额");
+	text(10, 50, "快递单号"), text(150, 50, "收件人电话"); text(290, 50, "收件地址"); text(810, 50, "签收时间"); text(990, 50, "寄件金额");
 	for (ListNode* node = packageList->head->next; node != NULL; node = node->next)
 	{
 		Package* pkg = (Package*)node->data;
@@ -257,11 +257,11 @@ void showPackageShippedWindow(int currentpage, long long totalNum, char* senderP
 			flag++;
 			if (flag >= start && flag <= end)
 			{
-				text(50, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
-				text(200, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
-				text(400, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//收件地址
-				text(800, 50 + (flag - start + 1) * 50, formatTime(pkg->time.shipped));//签收时间
-				text(970, 50 + (flag - start + 1) * 50, pkg->shippingFee);//寄件金额
+				text(10, 50 + (flag - start + 1) * 50, pkg->trackingNum);//快递单号
+				text(150, 50 + (flag - start + 1) * 50, pkg->receiverPhone);//收件人电话
+				text(290, 50 + (flag - start + 1) * 50, pkg->receiverAddress);//收件地址
+				text(810, 50 + (flag - start + 1) * 50, formatTime(pkg->time.shipped));//签收时间
+				text(990, 50 + (flag - start + 1) * 50, pkg->shippingFee);//寄件金额
 			}
 		}
 	}

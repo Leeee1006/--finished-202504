@@ -34,9 +34,9 @@ void list_save(List* list)
 {
 	FILE* fp = safeFopen(list->fileName, "wb");
 	fwrite(&list->elementCount, sizeof(size_t), 1, fp);
-	for (ListNode* cur = list->head; cur != list->tail; cur = cur->next)
+	for (ListNode* node = list->head; node->next != NULL; node = node->next)
 	{
-		fwrite(cur->next->data, list->dataSize, 1, fp);
+		fwrite(node->next->data, list->dataSize, 1, fp);
 	}
 	fclose(fp);
 }
@@ -61,12 +61,16 @@ void list_add(List* list, void* data)
 	list_basicAdd(list, newData);
 }
 
-void list_delete(List* list, const void* ref, unsigned long long mode, bool cmp(const void* d1, const void* d2, int mode))
+void list_delete(List* list, const void* ref, int mode, bool cmp(const void* d1, const void* d2, int mode))
 {
 	for (ListNode* node = list->head; node->next != NULL;)
 	{
 		if (cmp(node->next->data, ref, mode))
 		{
+			if (node->next == list->tail)
+			{
+				list->tail = node;
+			}
 			ListNode* tmpNode = node->next;
 			node->next = tmpNode->next;
 			memoryFree(list->dataPool, tmpNode->data);
@@ -86,6 +90,10 @@ void list_delete_ex(List* list, bool condition(const void* d))
 	{
 		if (condition(node->next->data))
 		{
+			if (node->next == list->tail)
+			{
+				list->tail = node;
+			}
 			ListNode* tmpNode = node->next;
 			node->next = tmpNode->next;
 			memoryFree(list->dataPool, tmpNode->data);
@@ -99,7 +107,7 @@ void list_delete_ex(List* list, bool condition(const void* d))
 	}
 }
 
-void* list_find(List* list, const void* ref, unsigned long long mode, bool cmp(const void* d1, const void* d2, int mode))
+void* list_find(List* list, const void* ref, int mode, bool cmp(const void* d1, const void* d2, int mode))
 {
 	for (ListNode* node = list->head; node->next != NULL; node = node->next)
 	{
@@ -183,5 +191,7 @@ ListNode* list_mergeSort(ListNode* head, ListNode* tail, size_t elementCount, bo
 
 void list_sort(List* list, bool cmp(const void* d1, const void* d2))
 {
+	clock_t startClock = clock();
 	list->tail = list_mergeSort(list->head, list->tail, list->elementCount, cmp);
+	printf("%lld 个数据排序耗时: %ld ms\n", list->elementCount, clock() - startClock);
 }

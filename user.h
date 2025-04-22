@@ -10,7 +10,7 @@
 
 #define UPGRADE_FEE 300.0       // 会员升级花费
 #define COUPON_VALUE 5.0        // 优惠券面额
-#define EXP_COEF 1				// 经验值系数
+#define EXP_COEF 100				// 经验值系数
 #define EXP_OF_PER_COUPON 10	// 兑换每张优惠券消耗的经验值
 
 enum UserModes
@@ -65,4 +65,4 @@ void userupgrade();
 void sendticket(int ticketTypeOption, char* pkgTrackingNum);
 
 // 功能：兑换优惠券
-void exchangecoupons();
+void exchangecoupons(int number);
